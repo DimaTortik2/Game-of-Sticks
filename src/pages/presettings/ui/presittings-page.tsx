@@ -1,5 +1,5 @@
 import { getGameModeDataFromCookies } from '../../../app/helpers/get-game-mode-data-from-cookies'
-import { Header } from '../../../wigets/header'
+import { Header } from '../../../widgets/header'
 
 export function PresettingsPage() {
 	const { modeDesc, modeName, modeNum } = getGameModeDataFromCookies()

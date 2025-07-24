@@ -1,6 +1,5 @@
-import { Link } from 'react-router'
 import { GAME_MODES } from '../model/consts'
-import { GameModeBtn } from '../ui/game-mode-btn'
+import { GameModeLink } from '../ui/game-mode-link'
 import { InfoBtn } from '../ui/info-btn'
 import { setGameModeDataToCookies } from '../../../app/helpers/set-game-mode-data-to-cookies'
 
@@ -19,8 +18,9 @@ export const MainMenuPage = () => {
 			<main className='relative z-10 w-full max-w-[1500px] h-full p-8 flex justify-center gap-16'>
 				<div className='flex flex-col gap-6 w-full'>
 					{GAME_MODES.map(mode => (
-						<Link key={mode.number} to={'/preset'}>
-							<GameModeBtn
+							<GameModeLink
+								key={mode.number}
+								to={'/preset'}
 								number={mode.number}
 								title={mode.name}
 								description={mode.description}
@@ -32,7 +32,6 @@ export const MainMenuPage = () => {
 									})
 								}}
 							/>
-						</Link>
 					))}
 				</div>
 
