@@ -1,3 +1,4 @@
+import clsx from 'clsx'
 import type { ReactNode } from 'react'
 
 export function PresettingItem({
@@ -7,6 +8,7 @@ export function PresettingItem({
 	leftCount,
 	rightCount,
 	title,
+	isStreak,
 }: {
 	slider: ReactNode
 	min: number
@@ -14,11 +16,24 @@ export function PresettingItem({
 	leftCount?: number
 	rightCount: number
 	title: string
+	isStreak?: boolean
 }) {
 	return (
 		<div className=' flex gap-10 items-center'>
-			<div className=' bg-[#3e3e3e] text-[#e8e8e8] w-full max-w-md px-6 py-5 rounded-2xl text-lg font-semibold shadow-lg flex items-center justify-center'>
-				{title}
+			<div className='flex flex-col'>
+				<div
+					className={clsx(
+						' bg-[#3e3e3e] text-[#e8e8e8] w-full max-w-md px-6 py-5  text-lg font-semibold shadow-lg flex items-center justify-center min-w-[350px]',
+						isStreak ? 'rounded-t-2xl' : 'rounded-2xl'
+					)}
+				>
+					{title}
+				</div>
+				{isStreak && (
+					<div className='flex items-center justify-center py-2 rounded-b-2xl bg-[#81BACF] font-semibold'>
+						<p>Подряд</p>
+					</div>
+				)}
 			</div>
 			{leftCount && (
 				<div className='bg-[#3e3e3e] text-[#e8e8e8] w-12 h-12 p-6 rounded-full text-lg font-semibold shadow-lg flex items-center justify-center'>
@@ -26,9 +41,13 @@ export function PresettingItem({
 				</div>
 			)}
 			<div className=' flex items-center text-[#212121]'>
-				<p className='mr-7 min-w-[2rem]'>{min}</p>
+				<p className='mr-7 p-1 bg-[#d9d9d9] flex items-center justify-center rounded-full min-w-[2rem]'>
+					{min}
+				</p>
 				<div className='w-[170px]'>{slider}</div>
-				<p className='ml-5 min-w-[2rem]'>{max}</p>
+				<p className='ml-5 p-1 bg-[#d9d9d9] flex items-center justify-center rounded-full min-w-[2rem]'>
+					{max}
+				</p>
 			</div>
 			<div className='bg-[#3e3e3e] text-[#e8e8e8] w-12 h-12 p-6 rounded-full text-lg font-semibold shadow-lg flex items-center justify-center'>
 				{rightCount}

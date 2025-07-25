@@ -1,18 +1,21 @@
 import { useEffect, useState } from 'react'
 import { PresettingSlider } from '../ui/presetting-slider'
 import { PresettingItem } from '../ui/presseting-item'
-import type { ISliderState } from '../model/interfaces/sliders.interface'
+import type {
+	ISliderRangeState,
+	ISliderState,
+} from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 
-export function PressetingFormMode1() {
+export function PressetingFormMode2() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
-	const [maxPerStep, setMaxPerStep] = useState<ISliderState>(5)
-	// const [sliderRangeState, setSliderRangeState] = useState<ISliderRangeState>([
-	// 	5, 50,
-	// ])
+	const [Range, setRange] = useState<ISliderRangeState>([
+		5, 50,
+	])
 
 	useEffect(() => {
-		if (maxPerStep > allCount) setMaxPerStep(allCount)
+		if (Range[1] > allCount)
+			setRange(prev => [prev[0], allCount])
 	}, [allCount])
 	// to fix a bug between two sliders
 
@@ -37,38 +40,23 @@ export function PressetingFormMode1() {
 			/>
 
 			<PresettingItem
-				title='Максимум палочек за ход'
+				title='Диапазон выбора палочек за ход'
 				min={5}
 				max={allCount}
 				slider={
 					<PresettingSlider
 						onChange={makeHandleSliderChange({
-							setSliderState: setMaxPerStep,
+							setSliderRangeState: setRange,
 						})}
-						value={maxPerStep}
+						value={Range}
 						min={5}
 						max={allCount}
 						step={1}
 					/>
 				}
-				rightCount={maxPerStep}
+				leftCount={Range[0]}
+				rightCount={Range[1]}
 			/>
-
-			{/* <PresettingItem
-				min={5}
-				max={50}
-				slider={
-					<PresettingSlider
-						onChange={handleSliderChange}
-						value={sliderRangeState}
-						min={5}
-						max={50}
-						step={1}
-					/>
-				}
-				leftCount={sliderRangeState[0]}
-				rightCount={sliderRangeState[1]}
-			/> */}
 		</div>
 	)
 }
