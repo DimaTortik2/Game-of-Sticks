@@ -2,6 +2,7 @@ import { GAME_MODES } from '../model/consts'
 import { GameModeLink } from '../ui/game-mode-link'
 import { InfoBtn } from '../ui/info-btn'
 import { setGameModeDataToCookies } from '../../../app/helpers/set-game-mode-data-to-cookies'
+import { BottomBtns } from '../../../features/bottom-btns'
 
 export const MainMenuPage = () => {
 	return (
@@ -42,6 +43,8 @@ export const MainMenuPage = () => {
 						<InfoBtn>Готовые стратегии и их доказательства</InfoBtn>
 					</div>
 				</div>
+
+				<BottomBtns />
 			</main>
 		</div>
 	)

@@ -1,0 +1,1 @@
+export { BottomBtns } from './ui/bottom-btns'

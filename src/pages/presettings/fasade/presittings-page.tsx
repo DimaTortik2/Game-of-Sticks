@@ -8,7 +8,7 @@ export function PresettingsPage() {
 	return (
 		<div
 			className='relative h-screen w-full bg-[#212121] flex items-center justify-center overflow-hidden font-sans 
-    text-[#e8e8e8]
+    text-[#e8e8e8] 
     '
 		>
 			<div
@@ -20,10 +20,10 @@ export function PresettingsPage() {
 				style={{ left: '20%', top: '-70%' }}
 			></div>
 
-			<div className='h-screen w-screen'>
+			<div className='h-screen w-screen flex flex-col'>
 				<Header modeDesc={modeDesc} modeName={modeName} />
 
-				<main className='relative z-10 w-full max-w-[1500px] h-auto p-8 flex justify-start gap-16'>
+				<main className='relative z-10 w-full p-8 flex justify-start gap-16 flex-1'>
 					<PresettingFromRender modeNum={modeNum} />
 				</main>
 			</div>

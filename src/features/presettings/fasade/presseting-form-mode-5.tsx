@@ -3,6 +3,8 @@ import { PresettingSlider } from '../ui/presetting-slider'
 import { PresettingItem } from '../ui/presseting-item'
 import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
+import { Clue } from '../../../shared/ui/alerts/alert'
+import { PlayButton } from '../ui/play-button'
 
 export function PressetingFormMode5() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
@@ -26,6 +28,9 @@ export function PressetingFormMode5() {
 				}
 				rightCount={allCount}
 			/>
+			<Clue/>
+			
+						<PlayButton onClick={() => {}} />
 		</div>
 	)
 }
