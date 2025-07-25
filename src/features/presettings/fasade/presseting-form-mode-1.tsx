@@ -4,7 +4,7 @@ import { PresettingItem } from '../ui/presseting-item'
 import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 import { PlayButton } from '../ui/play-button'
-import { Clue } from '../../../shared/ui/alerts/alert'
+import { Clue } from '../../../shared/ui/alerts/clue'
 
 export function PressetingFormMode1() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
@@ -51,7 +51,7 @@ export function PressetingFormMode1() {
 				}
 				rightCount={maxPerStep}
 			/>
-			<Clue/>
+			<Clue />
 
 			<PlayButton onClick={() => {}} />
 		</div>

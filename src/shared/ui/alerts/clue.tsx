@@ -16,7 +16,7 @@ export function Clue() {
 		}
 	}, [])
 
-	const [isVisible, setIsVisible] = useState(Cookies.get('noClue') === 'false')
+	const [isVisible, setIsVisible] = useState(Cookies.get('noClue') !== 'true')
 
 	return isVisible ? (
 		<div

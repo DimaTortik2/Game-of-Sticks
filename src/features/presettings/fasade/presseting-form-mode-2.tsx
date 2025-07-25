@@ -6,18 +6,15 @@ import type {
 	ISliderState,
 } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
-import { Clue } from '../../../shared/ui/alerts/alert'
+import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
 
 export function PressetingFormMode2() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
-	const [Range, setRange] = useState<ISliderRangeState>([
-		1, 50,
-	])
+	const [Range, setRange] = useState<ISliderRangeState>([1, 50])
 
 	useEffect(() => {
-		if (Range[1] > allCount)
-			setRange(prev => [prev[0], allCount])
+		if (Range[1] > allCount) setRange(prev => [prev[0], allCount])
 	}, [allCount])
 	// to fix a bug between two sliders
 
@@ -59,9 +56,9 @@ export function PressetingFormMode2() {
 				leftCount={Range[0]}
 				rightCount={Range[1]}
 			/>
-			<Clue/>
-			
-						<PlayButton onClick={() => {}} />
+			<Clue />
+
+			<PlayButton onClick={() => {}} />
 		</div>
 	)
 }

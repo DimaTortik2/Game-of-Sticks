@@ -6,7 +6,7 @@ import type {
 	ISliderState,
 } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
-import { Clue } from '../../../shared/ui/alerts/alert'
+import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
 
 export function PressetingFormMode4() {
@@ -57,9 +57,9 @@ export function PressetingFormMode4() {
 				leftCount={RangeStreak[0]}
 				rightCount={RangeStreak[1]}
 			/>
-			<Clue/>
-			
-						<PlayButton onClick={() => {}} />
+			<Clue />
+
+			<PlayButton onClick={() => {}} />
 		</div>
 	)
 }
