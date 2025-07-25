@@ -9,7 +9,7 @@ import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-chan
 
 export function PressetingFormMode4() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
-	const [RangeStreak, setRangeStreak] = useState<ISliderRangeState>([5, 50])
+	const [RangeStreak, setRangeStreak] = useState<ISliderRangeState>([1, 50])
 
 	useEffect(() => {
 		if (RangeStreak[1] > allCount) setRangeStreak(prev => [prev[0], allCount])
@@ -39,7 +39,7 @@ export function PressetingFormMode4() {
 			<PresettingItem
 				title='Диапазон выбора палочек за ход'
 				isStreak={true}
-				min={5}
+				min={1}
 				max={allCount}
 				slider={
 					<PresettingSlider
@@ -47,7 +47,7 @@ export function PressetingFormMode4() {
 							setSliderRangeState: setRangeStreak,
 						})}
 						value={RangeStreak}
-						min={5}
+						min={1}
 						max={allCount}
 						step={1}
 					/>

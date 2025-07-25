@@ -6,7 +6,7 @@ import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-chan
 
 export function PressetingFormMode3() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
-	const [maxPerStepStreak, setMaxPerStepStreak] = useState<ISliderState>(5)
+	const [maxPerStepStreak, setMaxPerStepStreak] = useState<ISliderState>(1)
 
 	useEffect(() => {
 		if (maxPerStepStreak > allCount) setMaxPerStepStreak(allCount)
@@ -36,7 +36,7 @@ export function PressetingFormMode3() {
 			<PresettingItem
 				isStreak={true}
 				title='Максимум палочек за ход'
-				min={5}
+				min={1}
 				max={allCount}
 				slider={
 					<PresettingSlider
@@ -44,7 +44,7 @@ export function PressetingFormMode3() {
 							setSliderState: setMaxPerStepStreak,
 						})}
 						value={maxPerStepStreak}
-						min={5}
+						min={1}
 						max={allCount}
 						step={1}
 					/>
