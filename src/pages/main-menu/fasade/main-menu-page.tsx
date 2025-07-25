@@ -18,20 +18,20 @@ export const MainMenuPage = () => {
 			<main className='relative z-10 w-full max-w-[1500px] h-full p-8 flex justify-center gap-16'>
 				<div className='flex flex-col gap-6 w-full'>
 					{GAME_MODES.map(mode => (
-							<GameModeLink
-								key={mode.number}
-								to={'/preset'}
-								number={mode.number}
-								title={mode.name}
-								description={mode.description}
-								onClick={() => {
-									setGameModeDataToCookies({
-										modeNum: mode.number,
-										modeName: mode.name,
-										modeDesc: mode.description,
-									})
-								}}
-							/>
+						<GameModeLink
+							key={mode.number}
+							to={'/preset'}
+							number={mode.number}
+							title={mode.name}
+							description={mode.description}
+							onClick={() => {
+								setGameModeDataToCookies({
+									modeNum: mode.number,
+									modeName: mode.name,
+									modeDesc: mode.description,
+								})
+							}}
+						/>
 					))}
 				</div>
 

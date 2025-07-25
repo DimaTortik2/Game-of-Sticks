@@ -4,7 +4,7 @@ import './index.css'
 import { BrowserRouter, Routes, Route } from 'react-router'
 import { TestPage } from './pages/test-page'
 import { MainMenuPage } from './pages/main-menu/fasade/main-menu-page'
-import { PresettingsPage } from './pages/presettings/ui/presittings-page'
+import { PresettingsPage } from './pages/presettings/fasade/presittings-page'
 
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>

@@ -10,7 +10,7 @@ export function Header({
 	modeDesc?: string
 }) {
 	return (
-		<div className='w-full fixed top-0 p-7 bg-[#3E3E3E] rounded-b-2xl flex items-center gap-5 z-50'>
+		<div className='w-full relative top-0 p-7 bg-[#3E3E3E] rounded-b-2xl flex items-center gap-5 z-50'>
 			<Link to={'/'}>
 				<IconButton icon={<ArrowBackIcon />} />
 			</Link>
