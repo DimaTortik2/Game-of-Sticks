@@ -16,7 +16,7 @@ export function BottomBtns() {
 	}
 
 	return (
-		<div className='fixed w-[90%] bottom-[20px] flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
+		<div className='absolute w-[90%] bottom-[20px] left-1/2 -translate-x-1/2 z-[1000] flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
 			<div className='flex gap-5'>
 				<p>Отключить всплывающие подсказки</p>
 				<Checkbox

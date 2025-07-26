@@ -50,7 +50,7 @@ export const ShinyTitle: React.FC = () => {
 			ref={containerRef}
 			onMouseMove={handleMouseMove}
 			onMouseLeave={handleMouseLeave}
-			className='w-screen h-screen absolute bottom-[-110%] z-60 flex items-center justify-center'
+			className='w-screen z-[30] flex items-center justify-center bg-[#212121] py-20'
 		>
 			<motion.div
 				style={{
@@ -64,7 +64,7 @@ export const ShinyTitle: React.FC = () => {
 							backgroundImage,
 						}}
 					>
-						Game of Sticks
+						About Sticks
 					</motion.p>
 				</div>
 			</motion.div>
