@@ -1,0 +1,29 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  
+    <defs>
+        <linearGradient id="diagonal-split-round" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="50%" stop-color="#D9D9D9"/>
+            <stop offset="50%" stop-color="#212121"/>
+        </linearGradient>
+
+        <clipPath id="circle-mask">
+            <circle cx="256" cy="256" r="256"/>
+        </clipPath>
+    </defs>
+
+ 
+    <rect width="512" height="512" fill="url(#diagonal-split-round)" clip-path="url(#circle-mask)"/>
+
+   
+    <rect
+        x="226"
+        y="-44"
+        width="60"
+        height="600"
+        fill="#DDA961"
+        rx="30"
+        ry="30"
+        stroke="rgba(0,0,0,0.1)"
+        stroke-width="3"
+    />
+</svg>

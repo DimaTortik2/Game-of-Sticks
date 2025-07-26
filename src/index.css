@@ -1,3 +1,31 @@
 @import 'tailwindcss';
 
 
+.thin-scrollbar {
+  /* Для Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(155, 155, 155, 0.7) transparent;
+}
+
+/* Для Chrome, Safari, Edge и других WebKit-браузеров */
+.thin-scrollbar::-webkit-scrollbar {
+  width: 8px; /* Ширина самого скроллбара */
+  height: 8px; /* Высота для горизонтального скроллбара */
+}
+
+.thin-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* Делаем трек (дорожку) невидимым */
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(155, 155, 155, 0.7); /* Цвет ползунка, полупрозрачный серый */
+  border-radius: 20px; /* Скругляем углы ползунка */
+  
+  /* Главный трюк: создаем отступы вокруг ползунка, чтобы он не прилипал к краю */
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+.thin-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(155, 155, 155, 0.9); /* Делаем ползунок чуть ярче при наведении */
+}

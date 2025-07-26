@@ -16,7 +16,7 @@ export function BottomBtns() {
 	}
 
 	return (
-		<div className='absolute w-[90%] bottom-[20px] flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
+		<div className='fixed w-[90%] bottom-[20px] flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
 			<div className='flex gap-5'>
 				<p>Отключить всплывающие подсказки</p>
 				<Checkbox
@@ -32,6 +32,7 @@ export function BottomBtns() {
 							color: '#e8e8e8', // цвет, когда выбран
 						},
 					}}
+					className='transition-transform transform hover:scale-110'
 				/>
 			</div>
 		</div>

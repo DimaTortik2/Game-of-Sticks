@@ -3,20 +3,16 @@ import { GameModeLink } from '../ui/game-mode-link'
 import { InfoBtn } from '../ui/info-btn'
 import { setGameModeDataToCookies } from '../../../app/helpers/set-game-mode-data-to-cookies'
 import { BottomBtns } from '../../../features/bottom-btns'
+import { ShinyTitle } from '../ui/shiny-ttitle'
+import { MainPageBackground } from '../../../shared/ui/bg/main-page-background'
 
 export const MainMenuPage = () => {
 	return (
-		<div className='relative h-screen w-full bg-[#212121] flex items-center justify-center overflow-hidden font-sans '>
-			<div
-				className='absolute bg-[#d9d9d9] w-[45%] h-[300%] transform -rotate-[-25deg]'
-				style={{ right: '0' }}
-			></div>
-			<div
-				className='absolute bg-[#d9d9d9] w-[30%] h-[300%] transform -rotate-[25deg]'
-				style={{ left: '20%', top: '-70%' }}
-			></div>
+		<div className='relative h-screen w-full bg-[#212121] flex items-center justify-center overflow-hidden font-sans pb-[40vh] md:pb-0 overflow-y-auto overflow-x-hidden thin-scrollbar '>
+			<ShinyTitle />
+			<MainPageBackground />
 
-			<main className='relative z-10 w-full max-w-[1500px] h-full p-8 flex justify-center gap-16'>
+			<main className='relative z-10 w-full max-w-[1500px] h-full p-8 flex justify-center gap-16  '>
 				<div className='flex flex-col gap-6 w-full'>
 					{GAME_MODES.map(mode => (
 						<GameModeLink

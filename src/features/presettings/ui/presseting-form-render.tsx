@@ -7,7 +7,7 @@ import { PressetingFormMode5 } from '../fasade/presseting-form-mode-5'
 export function PresettingFromRender({ modeNum }: { modeNum: number }) {
 	if (!modeNum) {
 		return (
-			<p className='p-5 rounded-2xl bg-red-400 text-[#e8e8e8]'>
+			<p className='p-5 rounded-2xl bg-red-400 text-[#e8e8e8] max-h-[4rem]'>
 				Ошибка с выбором режима!
 			</p>
 		)
