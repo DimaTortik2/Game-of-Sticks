@@ -6,6 +6,8 @@ import { Btn } from '../../../shared/ui/btns-or-links/btn'
 import { useAtom } from 'jotai'
 import { selectedSticksIdsAtom } from '../../../app/stores/game/game-store'
 import clsx from 'clsx'
+import { ToastContainer } from 'react-toastify'
+import { GameTableBtn } from '../../../features/game/table'
 
 export function Enviroment() {
 	const [selectedSticksIds, setSelectedSticksIds] = useAtom(
@@ -14,6 +16,17 @@ export function Enviroment() {
 
 	return (
 		<>
+			<ToastContainer
+				containerId={'gameTable'}
+				position='bottom-left'
+				autoClose={false}
+				hideProgressBar={true}
+				closeOnClick={false}
+				draggable={false} // нельзя перетаскивать мышкой
+			/>
+
+			<GameTableBtn className='absolute left-[20px] bottom-[20px] z-20' />
+
 			<GamePageBackground />
 
 			<ExitLinkButton

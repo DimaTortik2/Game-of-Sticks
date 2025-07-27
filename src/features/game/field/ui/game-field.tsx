@@ -2,7 +2,7 @@ import clsx from 'clsx'
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Stick } from './stick'
-import { useSelection } from '../../model/hooks/use-selecction'
+import { useSelection } from '../model/hooks/use-selecction'
 import { useMousePosition } from '../../../../shared/model/hooks/use-mouse-position'
 import { MouseAlert } from '../../../../shared/ui/alerts/mouse-alert'
 
@@ -28,7 +28,6 @@ export function GameFiled({
 	const sticksArr = Array.from({ length: sticksCount }, (_, i) => i + 1)
 
 	const mousePosition = useMousePosition()
-
 
 	const gap =
 		sticksArr.length > 1

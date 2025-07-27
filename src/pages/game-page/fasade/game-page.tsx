@@ -22,7 +22,11 @@ export function GamePage() {
 					<GameFiled
 						sticksCount={sticksCount}
 						className={clsx(
-							' w-[95%] max-w-[1800px] ',
+							sticksCount < 10
+								? ' w-[95%] max-w-[700px]'
+								: sticksCount < 15
+								? 'w-[95%] max-w-[1000px]'
+								: ' w-[95%] max-w-[1800px] ',
 							isSticksLess ? 'h-[35%] max-h-[325px]' : 'h-[70%] max-h-[650px]'
 						)}
 						isSticksLess={isSticksLess}

@@ -7,12 +7,15 @@ import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
 import { setGameParamsToCookies } from '../../../pages/game-page/helpers/set-game-params-to-cookies'
 import { randomize } from '../model/helpers/randomize'
+import { setSticksOnFieldToCookies } from '../../../app/helpers/sticks-on-field/set-sticks-on-field-to-cookies'
+import { makeArray } from '../model/helpers/make-array'
 
 export function PressetingFormMode5() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
 
 	const handlePlayClick = () => {
 		setGameParamsToCookies({ sticksCount: allCount })
+		setSticksOnFieldToCookies([makeArray(allCount)])
 	}
 
 	return (

@@ -1,7 +1,7 @@
 import { useAtom } from 'jotai'
 import { useState, useRef, useCallback } from 'react'
 import type { MouseEvent } from 'react'
-import { selectedSticksIdsAtom } from '../../../../app/stores/game/game-store'
+import { selectedSticksIdsAtom } from '../../../../../app/stores/game/game-store'
 type Point = { x: number; y: number }
 
 export const useSelection = (
