@@ -1,10 +1,10 @@
 import { GAME_MODES } from '../model/consts'
 import { GameModeLink } from '../ui/game-mode-link'
-import { InfoBtn } from '../ui/info-btn'
 import { setGameModeDataToCookies } from '../../../app/helpers/set-game-mode-data-to-cookies'
 import { BottomBtns } from '../../../features/bottom-btns'
 import { ShinyTitle } from '../ui/shiny-ttitle'
 import { MainPageBackground } from '../../../shared/ui/bg/main-page-background'
+import { Btn } from '../../../shared/ui/btns-or-links/btn'
 
 export const MainMenuPage = () => {
 	return (
@@ -34,9 +34,15 @@ export const MainMenuPage = () => {
 
 					<div className=' flex h-screen items-start justify-end'>
 						<div className='inline-flex flex-col gap-8 '>
-							<InfoBtn>Обучение как играть</InfoBtn>
-							<InfoBtn>Советы и подсказки</InfoBtn>
-							<InfoBtn>Готовые стратегии и их доказательства</InfoBtn>
+							<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
+								Обучение как играть
+							</Btn>
+							<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
+								Советы и подсказки
+							</Btn>
+							<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
+								Готовые стратегии и их доказательства
+							</Btn>
 						</div>
 					</div>
 				</main>

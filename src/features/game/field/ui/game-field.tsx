@@ -2,10 +2,9 @@ import clsx from 'clsx'
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { Stick } from './stick'
-import { useSelection } from '../../../../shared/model/hooks/use-selecction'
+import { useSelection } from '../../model/hooks/use-selecction'
 import { useMousePosition } from '../../../../shared/model/hooks/use-mouse-position'
 import { MouseAlert } from '../../../../shared/ui/alerts/mouse-alert'
-import { Clue } from '../../../../shared/ui/alerts/clue'
 
 interface IProps {
 	className?: string
@@ -30,8 +29,6 @@ export function GameFiled({
 
 	const mousePosition = useMousePosition()
 
-	console.log('Выбранные ID:', Array.from(selectedIds))
-
 	console.log({ isSticksLess })
 
 	const gap =
@@ -49,8 +46,6 @@ export function GameFiled({
 				left={mousePosition.x}
 				top={mousePosition.y}
 			/>
-
-			<Clue/>
 
 			<div
 				ref={containerRef}

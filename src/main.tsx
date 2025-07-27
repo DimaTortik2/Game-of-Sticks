@@ -30,6 +30,8 @@ import { MainMenuPage } from './pages/main-menu/fasade/main-menu-page'
 import { PresettingsPage } from './pages/presettings/fasade/presittings-page'
 import { GamePage } from './pages/game-page/ui/game-page'
 import { useBackToast } from './shared/model/hooks/use-back-toast'
+import { Provider } from 'jotai'
+import { gameStore } from './app/stores/game/game-store'
 
 const pageVariants = {
 	initial: {
@@ -101,15 +103,17 @@ const AnimatedRoutes = () => {
 				<Route
 					path='/game'
 					element={
-						<motion.div
-							initial='initial'
-							animate='in'
-							exit='out'
-							variants={pageVariants}
-							transition={pageTransition}
-						>
-							<GamePage />
-						</motion.div>
+						<Provider store={gameStore}>
+							<motion.div
+								initial='initial'
+								animate='in'
+								exit='out'
+								variants={pageVariants}
+								transition={pageTransition}
+							>
+								<GamePage />
+							</motion.div>
+						</Provider>
 					}
 				/>
 			</Routes>
@@ -128,7 +132,6 @@ createRoot(document.getElementById('root')!).render(
 			position='bottom-right'
 			autoClose={10000}
 			hideProgressBar={false}
-			
 		/>
 	</StrictMode>
 )

@@ -3,7 +3,7 @@ export const GamePageBackground = () => {
 		<>
 			<div
 				className='fixed bg-[#d9d9d9] w-[70%] h-[300%] transform -rotate-[45deg]'
-				style={{ left: '20%', top: '-70%' }}
+				style={{ left: '15%', top: '-70%' }}
 			></div>
 			<div
 				className='fixed bg-[#d9d9d9] w-[70%] h-[300%] transform -rotate-[45deg]'

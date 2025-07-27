@@ -1,13 +1,13 @@
+import { useAtom } from 'jotai'
 import { useState, useRef, useCallback } from 'react'
 import type { MouseEvent } from 'react'
+import { selectedSticksIdsAtom } from '../../../../app/stores/game/game-store'
 type Point = { x: number; y: number }
 
 export const useSelection = (
 	containerRef: React.RefObject<HTMLElement | null>
 ) => {
-	const [selectedIds, setSelectedIds] = useState<Set<string | number>>(
-		new Set()
-	)
+	const [selectedIds, setSelectedIds] = useAtom(selectedSticksIdsAtom)
 
 	const [isDragging, setIsDragging] = useState(false)
 	const [startPoint, setStartPoint] = useState<Point>({ x: 0, y: 0 })

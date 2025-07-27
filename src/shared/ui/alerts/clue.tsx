@@ -5,7 +5,7 @@ import { IconButton } from '../icons/icon-button'
 import clsx from 'clsx'
 import Cookies from 'js-cookie'
 
-export function Clue() {
+export function Clue({ className }: { className?: string }) {
 	const getRandText = () => ALERTS[Math.floor(Math.random() * ALERTS.length)]
 	const [text, setText] = useState(getRandText())
 
@@ -22,7 +22,8 @@ export function Clue() {
 		<div
 			className={clsx(
 				'py-5 pr-5 bg-[#3e3e3e] absolute bottom-[20px] right-[20px] rounded-2xl flex max-w-[500px]',
-				!isVisible && 'opacity-0 transition-opacity'
+				!isVisible && 'opacity-0 transition-opacity',
+				className
 			)}
 		>
 			<div className='h-full'>
