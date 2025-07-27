@@ -1,5 +1,6 @@
 import clsx from 'clsx'
 import type { ReactNode } from 'react'
+import { Btn } from '../../../shared/ui/btns-or-links/btn'
 
 export function PresettingItem({
 	slider,
@@ -9,6 +10,7 @@ export function PresettingItem({
 	rightCount,
 	title,
 	isStreak,
+	onRandomClick,
 }: {
 	slider: ReactNode
 	min: number
@@ -17,6 +19,7 @@ export function PresettingItem({
 	rightCount: number
 	title: string
 	isStreak?: boolean
+	onRandomClick?: () => void
 }) {
 	return (
 		<div className=' flex gap-10 items-center'>
@@ -52,6 +55,10 @@ export function PresettingItem({
 			<div className='bg-[#3e3e3e] text-[#e8e8e8] w-12 h-12 p-6 rounded-full text-lg font-semibold shadow-lg flex items-center justify-center'>
 				{rightCount}
 			</div>
+
+			<Btn className='bg-[#3e3e3e] text-[#e1cb4f]' onClick={onRandomClick}>
+				Рандом
+			</Btn>
 		</div>
 	)
 }

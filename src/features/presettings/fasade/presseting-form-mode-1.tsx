@@ -6,6 +6,7 @@ import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-chan
 import { PlayButton } from '../ui/play-button'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { setGameParamsToCookies } from '../../../pages/game-page/helpers/set-game-params-to-cookies'
+import { randomize } from '../model/helpers/randomize'
 
 export function PressetingFormMode1() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
@@ -38,6 +39,7 @@ export function PressetingFormMode1() {
 					/>
 				}
 				rightCount={allCount}
+				onRandomClick={() => setAllCount(randomize({ from: 5, to: 50 }))}
 			/>
 			<PresettingItem
 				title='Максимум палочек за ход'
@@ -55,6 +57,9 @@ export function PressetingFormMode1() {
 					/>
 				}
 				rightCount={maxPerStep}
+				onRandomClick={() =>
+					setMaxPerStep(randomize({ from: 1, to: allCount }))
+				}
 			/>
 			<Clue />
 

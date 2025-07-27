@@ -29,7 +29,6 @@ export function GameFiled({
 
 	const mousePosition = useMousePosition()
 
-	console.log({ isSticksLess })
 
 	const gap =
 		sticksArr.length > 1

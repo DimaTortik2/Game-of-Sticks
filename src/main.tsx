@@ -28,10 +28,10 @@ import type { Transition } from 'framer-motion'
 import { TestPage } from './pages/test-page'
 import { MainMenuPage } from './pages/main-menu/fasade/main-menu-page'
 import { PresettingsPage } from './pages/presettings/fasade/presittings-page'
-import { GamePage } from './pages/game-page/ui/game-page'
 import { useBackToast } from './shared/model/hooks/use-back-toast'
 import { Provider } from 'jotai'
 import { gameStore } from './app/stores/game/game-store'
+import { GamePage } from './pages/game-page/fasade/game-page'
 
 const pageVariants = {
 	initial: {
