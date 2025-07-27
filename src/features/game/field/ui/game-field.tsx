@@ -5,6 +5,7 @@ import { Stick } from './stick'
 import { useSelection } from '../../../../shared/model/hooks/use-selecction'
 import { useMousePosition } from '../../../../shared/model/hooks/use-mouse-position'
 import { MouseAlert } from '../../../../shared/ui/alerts/mouse-alert'
+import { Clue } from '../../../../shared/ui/alerts/clue'
 
 interface IProps {
 	className?: string
@@ -33,6 +34,13 @@ export function GameFiled({
 
 	console.log({ isSticksLess })
 
+	const gap =
+		sticksArr.length > 1
+			? `calc((100% - ${
+					sticksArr.length > 25 ? 25 : sticksArr.length
+			  } * 15px) / (${(sticksArr.length > 25 ? 25 : sticksArr.length) - 1}))`
+			: undefined
+
 	return (
 		<>
 			<MouseAlert
@@ -41,6 +49,8 @@ export function GameFiled({
 				left={mousePosition.x}
 				top={mousePosition.y}
 			/>
+
+			<Clue/>
 
 			<div
 				ref={containerRef}
@@ -52,9 +62,13 @@ export function GameFiled({
 			>
 				<div
 					className={clsx(
-						'w-[98%]  flex items-center justify-between pointer-events-none bg-[#6E4816] rounded-2xl px-10 ',
+						'w-[98%] flex flex-wrap items-center pointer-events-none bg-[#6E4816] rounded-2xl px-10',
 						isSticksLess ? 'h-[1000px]' : 'h-[45%]'
 					)}
+					style={{
+						gap,
+						justifyContent: 'start',
+					}}
 				>
 					{sticksArr.slice(0, 25).map(stickNumber => (
 						<Stick
@@ -65,7 +79,16 @@ export function GameFiled({
 					))}
 				</div>
 				{!isSticksLess && (
-					<div className='w-[98%] h-[45%] flex items-center justify-between pointer-events-none bg-[#6E4816] rounded-2xl px-10 '>
+					<div
+						className={clsx(
+							'w-[98%] flex flex-wrap items-center pointer-events-none bg-[#6E4816] rounded-2xl px-10',
+							isSticksLess ? 'h-[1000px]' : 'h-[45%]'
+						)}
+						style={{
+							gap,
+							justifyContent: 'start',
+						}}
+					>
 						{sticksArr.slice(25, 50).map(stickNumber => (
 							<Stick
 								key={stickNumber}

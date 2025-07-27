@@ -7,7 +7,7 @@ import { getGameParamsFromCookies } from '../helpers/get-game-params-from-cookie
 export function GamePage() {
 	const { sticksCount } = getGameParamsFromCookies()
 
-	const isSticksLess = Boolean(sticksCount && sticksCount < 25)
+	const isSticksLess = Boolean(sticksCount && sticksCount <= 25)
 
 	return (
 		<div
