@@ -1,0 +1,1 @@
+export { GameFiled } from './ui/game-field'

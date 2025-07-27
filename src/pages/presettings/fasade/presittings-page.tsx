@@ -1,5 +1,6 @@
 import { getGameModeDataFromCookies } from '../../../app/helpers/get-game-mode-data-from-cookies'
 import { PresettingFromRender } from '../../../features/presettings'
+import { PressetingsPageBackground } from '../../../shared/ui/bg/presettings-page-background'
 import { Header } from '../../../widgets/header'
 
 export function PresettingsPage() {
@@ -11,14 +12,7 @@ export function PresettingsPage() {
     text-[#e8e8e8] 
     '
 		>
-			<div
-				className='absolute bg-[#d9d9d9] w-[80%] h-[170%] transform -rotate-[-25deg]'
-				style={{ left: '-30%', top: '-100%' }}
-			></div>
-			<div
-				className='absolute bg-[#d9d9d9] w-[70%] h-[300%] transform -rotate-[25deg]'
-				style={{ left: '20%', top: '-70%' }}
-			></div>
+			<PressetingsPageBackground />
 
 			<div className='h-screen w-screen flex flex-col'>
 				<Header modeDesc={modeDesc} modeName={modeName} />

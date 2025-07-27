@@ -12,7 +12,7 @@ export const MainMenuPage = () => {
 			<MainPageBackground />
 
 			<div className='relative z-10 w-screen h-screen overflow-y-auto overflow-x-hidden thin-scrollbar '>
-				<main className=' max-w-[1500px] h-full p-8 flex justify-center gap-16 '>
+				<main className=' h-full p-8 flex justify-center gap-16'>
 					<div className='flex flex-col gap-6 w-full'>
 						{GAME_MODES.map(mode => (
 							<GameModeLink

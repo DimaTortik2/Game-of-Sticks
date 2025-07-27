@@ -17,7 +17,8 @@
 // 		</BrowserRouter>
 // 	</StrictMode>
 // )
-
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'
@@ -27,6 +28,8 @@ import type { Transition } from 'framer-motion'
 import { TestPage } from './pages/test-page'
 import { MainMenuPage } from './pages/main-menu/fasade/main-menu-page'
 import { PresettingsPage } from './pages/presettings/fasade/presittings-page'
+import { GamePage } from './pages/game-page/ui/game-page'
+import { useBackToast } from './shared/model/hooks/use-back-toast'
 
 const pageVariants = {
 	initial: {
@@ -48,6 +51,7 @@ const pageTransition: Transition = {
 
 const AnimatedRoutes = () => {
 	const location = useLocation()
+	useBackToast()
 
 	return (
 		<AnimatePresence mode='wait'>
@@ -94,6 +98,20 @@ const AnimatedRoutes = () => {
 						</motion.div>
 					}
 				/>
+				<Route
+					path='/game'
+					element={
+						<motion.div
+							initial='initial'
+							animate='in'
+							exit='out'
+							variants={pageVariants}
+							transition={pageTransition}
+						>
+							<GamePage />
+						</motion.div>
+					}
+				/>
 			</Routes>
 		</AnimatePresence>
 	)
@@ -106,5 +124,11 @@ createRoot(document.getElementById('root')!).render(
 				<AnimatedRoutes />
 			</div>
 		</BrowserRouter>
+		<ToastContainer
+			position='bottom-right'
+			autoClose={10000}
+			hideProgressBar={false}
+			
+		/>
 	</StrictMode>
 )

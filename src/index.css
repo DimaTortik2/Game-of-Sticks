@@ -1,6 +1,6 @@
 @import 'tailwindcss';
 
-
+/* scrollbar */
 .thin-scrollbar {
   /* Для Firefox */
   scrollbar-width: thin;
@@ -28,4 +28,32 @@
 
 .thin-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: rgba(155, 155, 155, 0.9); /* Делаем ползунок чуть ярче при наведении */
+}
+
+
+
+/* toast */
+
+.full-width-toast {
+  /* Задаем фон, чтобы не было белых просветов */
+  background: #3e3e3e !important;
+  
+  /* Убираем отступы у самого контейнера */
+  padding: 0 !important;
+  
+  /* ===> ВОТ СТРОКА ДЛЯ СКРУГЛЕНИЯ УГЛОВ <=== */
+  border-radius: 12px !important; /* Можете выбрать любое значение */
+  
+  /* Опционально: можно убрать тень по умолчанию, если нужен плоский дизайн */
+  box-shadow: 0 1px 10px 0 rgba(0, 0, 0, 0.1), 0 2px 15px 0 rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 2. Стилизуем ВЛОЖЕННЫЙ элемент, куда React-Toastify помещает наш компонент */
+.full-width-toast .Toastify__toast-body {
+  /* Убираем его собственные отступы */
+  padding: 0 !important;
+  
+  /* ===> ВАЖНО: Также применяем скругление сюда! <=== */
+  /* Это не даст внутреннему блоку вылезти за края скругленного родителя. */
+  border-radius: 12px !important;
 }
