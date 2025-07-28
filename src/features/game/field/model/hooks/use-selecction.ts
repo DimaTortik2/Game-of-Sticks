@@ -1,14 +1,15 @@
-import { atom, useAtom } from 'jotai'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import type { MouseEvent } from 'react'
-// import { selectedSticksIdsAtom } from '../../../../../app/stores/game/game-store'
+import type { IStick } from '../../../../../entities/sticks/model/interfaces/stick.interfaces';
+
 type Point = { x: number; y: number }
 
 export const useSelection = (
-	containerRef: React.RefObject<HTMLElement | null>
+	containerRef: React.RefObject<HTMLElement | null>,
+	// Принимаем текущий массив палочек и функцию для его обновления
+	sticksArr: IStick[],
+	setSticksArr: (newSticks: IStick[]) => void
 ) => {
-	const [selectedIds, setSelectedIds] = useAtom(atom(new Set()))
-
 	const [isDragging, setIsDragging] = useState(false)
 	const [startPoint, setStartPoint] = useState<Point>({ x: 0, y: 0 })
 	const [endPoint, setEndPoint] = useState<Point>({ x: 0, y: 0 })
@@ -27,21 +28,26 @@ export const useSelection = (
 	)
 
 	const handleMouseDown = (e: MouseEvent<HTMLElement>) => {
-		if (e.target !== containerRef.current) return
-		if (e.button !== 0) return
-
-		if (!e.metaKey && !e.ctrlKey) {
-			setSelectedIds(new Set())
-		}
+		if (e.target !== containerRef.current || e.button !== 0) return
 
 		setIsDragging(true)
-		containerRef.current?.getBoundingClientRect()
 		setStartPoint({ x: e.clientX, y: e.clientY })
 		setEndPoint({ x: e.clientX, y: e.clientY })
+
+		// Если не зажат Ctrl/Cmd, сбрасываем выделение
+		if (!e.metaKey && !e.ctrlKey) {
+			const newSticks = sticksArr.map(stick =>
+				stick.isSelected ? { ...stick, isSelected: false } : stick
+			)
+			// Проверяем, действительно ли что-то изменилось, чтобы избежать лишнего ре-рендера
+			if (newSticks.some((s, i) => s !== sticksArr[i])) {
+				setSticksArr(newSticks)
+			}
+		}
 	}
 
 	const handleMouseMove = (e: MouseEvent<HTMLElement>) => {
-		if (!isDragging || !containerRef.current) return
+		if (!isDragging) return
 		setEndPoint({ x: e.clientX, y: e.clientY })
 	}
 
@@ -56,9 +62,11 @@ export const useSelection = (
 			bottom: Math.max(startPoint.y, endPoint.y),
 		}
 
-		const newlySelectedIds = new Set(selectedIds)
+		// Вычисляем, какие палочки попали в область выделения
+		const newSticks = sticksArr.map(stick => {
+			const element = itemRefs.current.get(stick.id)
+			if (!element) return stick
 
-		itemRefs.current.forEach((element, id) => {
 			const itemRect = element.getBoundingClientRect()
 			const isIntersecting =
 				itemRect.left < selectionBox.right &&
@@ -66,32 +74,36 @@ export const useSelection = (
 				itemRect.top < selectionBox.bottom &&
 				itemRect.bottom > selectionBox.top
 
+			// Если палочка пересеклась, инвертируем ее состояние isSelected
 			if (isIntersecting) {
-				if (newlySelectedIds.has(id)) {
-					newlySelectedIds.delete(id)
-				} else {
-					newlySelectedIds.add(id)
-				}
+				return { ...stick, isSelected: !stick.isSelected }
 			}
+			return stick
 		})
-		setSelectedIds(newlySelectedIds)
+
+		setSticksArr(newSticks)
 	}
 
 	const handleItemClick = (id: string | number, e: MouseEvent) => {
 		e.stopPropagation()
 
-		const newSelectedIds = new Set(selectedIds)
-		if (e.metaKey || e.ctrlKey) {
-			if (newSelectedIds.has(id)) {
-				newSelectedIds.delete(id)
-			} else {
-				newSelectedIds.add(id)
+		const newSticks = sticksArr.map(stick => {
+			if (stick.id === id) {
+				// Логика клика с Ctrl/Cmd
+				if (e.metaKey || e.ctrlKey) {
+					return { ...stick, isSelected: !stick.isSelected }
+				}
+				// Логика обычного клика (выделить только эту, остальные снять)
+				return { ...stick, isSelected: true }
 			}
-		} else {
-			newSelectedIds.clear()
-			newSelectedIds.add(id)
-		}
-		setSelectedIds(newSelectedIds)
+			// Если это не целевая палочка, при обычном клике снимаем выделение
+			if (!e.metaKey && !e.ctrlKey) {
+				return { ...stick, isSelected: false }
+			}
+			return stick
+		})
+
+		setSticksArr(newSticks)
 	}
 
 	const selectionBoxCoords = {
@@ -102,7 +114,6 @@ export const useSelection = (
 	}
 
 	return {
-		selectedIds,
 		isDragging,
 		selectionBoxCoords,
 		eventHandlers: {
@@ -114,7 +125,6 @@ export const useSelection = (
 		getItemProps: (id: string | number) => ({
 			onClick: (e: MouseEvent) => handleItemClick(id, e),
 			ref: (element: HTMLElement | null) => registerItemRef(id, element),
-			'data-selectable-id': id,
 		}),
 	}
 }

@@ -24,7 +24,7 @@ export function PressetingFormMode1() {
 	const handlePlayClick = () => {
 		setGameParamsToCookies({ sticksCount: allCount })
 		console.log({ arr: makeSticksStartArr(allCount) })
-		// setSticksArr(makeSticksStartArr(allCount))
+		setSticksArr(makeSticksStartArr(allCount))
 	}
 
 	return (

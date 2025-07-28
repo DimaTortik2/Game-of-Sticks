@@ -10,8 +10,6 @@ import { TestPage } from './pages/test-page'
 import { MainMenuPage } from './pages/main-menu/fasade/main-menu-page'
 import { PresettingsPage } from './pages/presettings/fasade/presittings-page'
 import { useBackToast } from './shared/model/hooks/use-back-toast'
-import { Provider } from 'jotai'
-import { gameStore } from './app/stores/game/game-store'
 import { GamePage } from './pages/game-page/fasade/game-page'
 
 const pageVariants = {
@@ -84,7 +82,6 @@ const AnimatedRoutes = () => {
 				<Route
 					path='/game'
 					element={
-						<Provider store={gameStore}>
 							<motion.div
 								initial='initial'
 								animate='in'
@@ -94,7 +91,6 @@ const AnimatedRoutes = () => {
 							>
 								<GamePage />
 							</motion.div>
-						</Provider>
 					}
 				/>
 			</Routes>

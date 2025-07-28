@@ -1,5 +1,5 @@
 import clsx from 'clsx'
-import { useRef } from 'react'
+import { useMemo, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { useSelection } from '../model/hooks/use-selecction'
 import { useMousePosition } from '../../../../shared/model/hooks/use-mouse-position'
@@ -7,7 +7,6 @@ import { MouseAlert } from '../../../../shared/ui/alerts/mouse-alert'
 import { Stick } from '../../../../entities/sticks'
 import { useAtom } from 'jotai'
 import { sticksArrCookieAtom } from '../../../../app/stores/game/game-store'
-import type { IStick } from '../../../../entities/sticks/model/interfaces/stick.interfaces'
 
 interface IProps {
 	className?: string
@@ -16,28 +15,27 @@ interface IProps {
 
 export function GameFiled({ className, isSticksLess }: IProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
-	const {
-		selectedIds,
-		isDragging,
-		selectionBoxCoords,
-		eventHandlers,
-		getItemProps,
-	} = useSelection(containerRef)
+	const [sticksArr, setSticksArr] = useAtom(sticksArrCookieAtom)
 
-	const [sticksArr, setSticksArr] = useAtom<IStick[] | undefined>(
-		sticksArrCookieAtom
-	)
-
+	// Добавляем проверку, чтобы не передавать undefined в хук
 	if (!sticksArr) {
-		console.log('Не удалось загрузить массив палочек !')
 		return (
 			<div className='bg-red-400 text-[#e8e8e8] rounded-2xl p-5 max-w-[300px] max-h-[200px] flex items-center justify-center'>
-				<p>Не удалось загрузить игру. Попробуйте снова...</p>
+				<p>Загрузка данных об игре...</p>
 			</div>
 		)
 	}
 
+	const { isDragging, selectionBoxCoords, eventHandlers, getItemProps } =
+		useSelection(containerRef, sticksArr, setSticksArr)
+
 	const mousePosition = useMousePosition()
+
+	// Вычисляем количество выделенных палочек для MouseAlert
+	const selectedCount = useMemo(
+		() => sticksArr.filter(stick => stick.isSelected).length,
+		[sticksArr]
+	)
 
 	const gap =
 		sticksArr.length > 1
@@ -50,7 +48,7 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 		<>
 			<MouseAlert
 				text='Ещё - Ctrl'
-				isVisible={selectedIds.size === 1 && !isDragging}
+				isVisible={selectedCount === 1 && !isDragging}
 				left={mousePosition.x}
 				top={mousePosition.y}
 			/>
@@ -63,6 +61,7 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 					className
 				)}
 			>
+				{/* Первый блок палочек */}
 				<div
 					className={clsx(
 						'w-[98%] flex flex-wrap items-center pointer-events-none bg-[#6E4816] rounded-2xl px-10',
@@ -76,12 +75,13 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 					{sticksArr.slice(0, 25).map(stick => (
 						<Stick
 							key={stick.id}
-							isSelected={stick.isSelected}
+							isSelected={stick.isSelected} // Это теперь работает!
 							isWrong={stick.isWrong}
 							{...getItemProps(stick.id)}
 						/>
 					))}
 				</div>
+				{/* Второй блок палочек */}
 				{!isSticksLess && (
 					<div
 						className={clsx(
@@ -96,7 +96,7 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 						{sticksArr.slice(25, 50).map(stick => (
 							<Stick
 								key={stick.id}
-								isSelected={stick.isSelected}
+								isSelected={stick.isSelected} // И это тоже
 								isWrong={stick.isWrong}
 								{...getItemProps(stick.id)}
 							/>
@@ -107,6 +107,7 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 
 			{isDragging &&
 				createPortal(
+					/* ... портал остается без изменений ... */
 					<div
 						style={{
 							position: 'fixed',

@@ -38,7 +38,7 @@ export const useBackToast = () => {
 	useEffect(() => {
 		if (location.state?.showBackToast) {
 			const goBack = () => {
-				navigate(-1)
+				navigate('/game')
 			}
 
 			toastId.current = toast(<ToastContent onBackClick={goBack} />, {
