@@ -4,20 +4,21 @@ import { useState } from 'react'
 import { pluralizeSticks } from '../helpers/pluralize'
 import { PREDEFINED_COLORS } from '../model/consts/colors'
 import clsx from 'clsx'
-import { useAtom, useSetAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import {
-	selectedSticksIdsAtom,
+	sticksArrCookieAtom,
 	tableAtom,
 } from '../../../../app/stores/game/game-store'
-import { getSticksOnFieldFromCookies } from '../../../../app/helpers/sticks-on-field/get-sticks-on-field-from-cookies'
+import type { IStick } from '../../../../entities/sticks/model/interfaces/stick.interfaces'
 
 interface GameTableProps {
 	closeToast?: () => void
 }
 
 export function GameTable({ closeToast }: GameTableProps) {
-	const setSelectedSticks = useSetAtom(selectedSticksIdsAtom)
-	const sticksOnField = getSticksOnFieldFromCookies()
+	const [sticksArr, setSticksArr] = useAtom<IStick[] | undefined>(
+		sticksArrCookieAtom
+	)
 
 	const [settings, setSettings] = useAtom(tableAtom)
 
@@ -79,25 +80,26 @@ export function GameTable({ closeToast }: GameTableProps) {
 	}
 
 	const handleSelectBtnClick = () => {
-		PREDEFINED_COLORS.forEach((color, i) => {
-			if (
-				color === settings.color &&
-				sticksOnField &&
-				i >= 0 &&
-				i < sticksOnField.length
-			) {
-				const sliced = sticksOnField[i].slice(
-					settings.skip,
-					settings.skip + settings.take
-				)
-				// setSelectedSticks(new Set(sliced)) // заменить на новое выделение сбросив старое
-				setSelectedSticks(prev => {
-					const updated = new Set(prev)
-					sliced.forEach(el => updated.add(el)) // добавляем каждый элемент
-					return updated
-				})
-			}
-		})
+		// PREDEFINED_COLORS.forEach((color, i) => {
+		// 	if (
+		// 		color === settings.color &&
+		// 		sticksArr &&
+		// 		i >= 0 &&
+		// 		i < sticksArr.length
+		// 	) {
+		// 		const sliced = sticksArr[i].slice(
+		// 			settings.skip,
+		// 			settings.skip + settings.take
+		// 		)
+		// 		// setSelectedSticks(new Set(sliced)) // заменить на новое выделение сбросив старое
+		// 		setSelectedSticks(prev => {
+		// 			const updated = new Set(prev)
+		// 			sliced.forEach(el => updated.add(el)) // добавляем каждый элемент
+		// 			return updated
+		// 		})
+		// 	}
+		// })
+		console.log('')
 	}
 
 	return (

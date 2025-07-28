@@ -5,14 +5,16 @@ import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
-import { setGameParamsToCookies } from '../../../pages/game-page/helpers/set-game-params-to-cookies'
+import { setGameParamsToCookies } from '../../../app/stores/game/cookies/game-params/set-game-params-to-cookies'
 import { randomize } from '../model/helpers/randomize'
-import { setSticksOnFieldToCookies } from '../../../app/helpers/sticks-on-field/set-sticks-on-field-to-cookies'
-import { makeArray } from '../model/helpers/make-array'
+import { makeSticksStartArr } from '../../../entities/sticks'
+import { useSetAtom } from 'jotai'
+import { sticksArrCookieAtom } from '../../../app/stores/game/game-store'
 
 export function PressetingFormMode3() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
 	const [maxPerStepStreak, setMaxPerStepStreak] = useState<ISliderState>(1)
+	const setSticksArr = useSetAtom(sticksArrCookieAtom)
 
 	useEffect(() => {
 		if (maxPerStepStreak > allCount) setMaxPerStepStreak(allCount)
@@ -21,8 +23,7 @@ export function PressetingFormMode3() {
 
 	const handlePlayClick = () => {
 		setGameParamsToCookies({ sticksCount: allCount })
-				setSticksOnFieldToCookies([makeArray(allCount)])
-		
+		setSticksArr(makeSticksStartArr(allCount))
 	}
 
 	return (

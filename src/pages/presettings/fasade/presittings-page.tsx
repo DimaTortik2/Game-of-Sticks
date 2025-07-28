@@ -1,4 +1,4 @@
-import { getGameModeDataFromCookies } from '../../../app/helpers/game-mode/get-game-mode-data-from-cookies'
+import { getGameModeDataFromCookies } from '../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
 import { PresettingFromRender } from '../../../features/presettings'
 import { PressetingsPageBackground } from '../../../shared/ui/bg/presettings-page-background'
 import { Header } from '../../../widgets/header'

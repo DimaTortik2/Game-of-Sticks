@@ -1,22 +1,20 @@
 import clsx from 'clsx'
 import { useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { Stick } from './stick'
 import { useSelection } from '../model/hooks/use-selecction'
 import { useMousePosition } from '../../../../shared/model/hooks/use-mouse-position'
 import { MouseAlert } from '../../../../shared/ui/alerts/mouse-alert'
+import { Stick } from '../../../../entities/sticks'
+import { useAtom } from 'jotai'
+import { sticksArrCookieAtom } from '../../../../app/stores/game/game-store'
+import type { IStick } from '../../../../entities/sticks/model/interfaces/stick.interfaces'
 
 interface IProps {
 	className?: string
-	sticksCount?: number
 	isSticksLess: boolean
 }
 
-export function GameFiled({
-	className,
-	isSticksLess,
-	sticksCount = 50,
-}: IProps) {
+export function GameFiled({ className, isSticksLess }: IProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
 	const {
 		selectedIds,
@@ -25,7 +23,19 @@ export function GameFiled({
 		eventHandlers,
 		getItemProps,
 	} = useSelection(containerRef)
-	const sticksArr = Array.from({ length: sticksCount }, (_, i) => i + 1)
+
+	const [sticksArr, setSticksArr] = useAtom<IStick[] | undefined>(
+		sticksArrCookieAtom
+	)
+
+	if (!sticksArr) {
+		console.log('Не удалось загрузить массив палочек !')
+		return (
+			<div className='bg-red-400 text-[#e8e8e8] rounded-2xl p-5 max-w-[300px] max-h-[200px] flex items-center justify-center'>
+				<p>Не удалось загрузить игру. Попробуйте снова...</p>
+			</div>
+		)
+	}
 
 	const mousePosition = useMousePosition()
 
@@ -63,11 +73,12 @@ export function GameFiled({
 						justifyContent: 'start',
 					}}
 				>
-					{sticksArr.slice(0, 25).map(stickNumber => (
+					{sticksArr.slice(0, 25).map(stick => (
 						<Stick
-							key={stickNumber}
-							isSelected={selectedIds.has(stickNumber)}
-							{...getItemProps(stickNumber)}
+							key={stick.id}
+							isSelected={stick.isSelected}
+							isWrong={stick.isWrong}
+							{...getItemProps(stick.id)}
 						/>
 					))}
 				</div>
@@ -82,11 +93,12 @@ export function GameFiled({
 							justifyContent: 'start',
 						}}
 					>
-						{sticksArr.slice(25, 50).map(stickNumber => (
+						{sticksArr.slice(25, 50).map(stick => (
 							<Stick
-								key={stickNumber}
-								isSelected={selectedIds.has(stickNumber)}
-								{...getItemProps(stickNumber)}
+								key={stick.id}
+								isSelected={stick.isSelected}
+								isWrong={stick.isWrong}
+								{...getItemProps(stick.id)}
 							/>
 						))}
 					</div>

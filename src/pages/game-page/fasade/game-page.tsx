@@ -1,7 +1,7 @@
 import clsx from 'clsx'
 import { GameFiled } from '../../../features/game/field'
 
-import { getGameParamsFromCookies } from '../helpers/get-game-params-from-cookies'
+import { getGameParamsFromCookies } from '../../../app/stores/game/cookies/game-params/get-game-params-from-cookies'
 import { Enviroment } from '../ui/enviroment'
 
 export function GamePage() {
