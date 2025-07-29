@@ -1,9 +1,7 @@
 import Cookies from 'js-cookie'
 
 export function getGameParamsFromCookies() {
-	const sticksCount = Number(Cookies.get('sticksCount'))
+	const gameParams = JSON.parse(Cookies.get('gameParams') || '{}')
 
-	return {
-		sticksCount,
-	}
+	return gameParams
 }

@@ -1,6 +1,6 @@
 import clsx from 'clsx'
 import { forwardRef } from 'react'
-import { PREDEFINED_COLORS } from '../../../features/game/table/model/consts/colors'
+import { PREDEFINED_COLORS } from '../../../app/consts/colors'
 
 interface StickProps {
 	isSelected: boolean

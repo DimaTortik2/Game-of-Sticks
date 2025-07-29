@@ -8,7 +8,6 @@ import { sticksArrCookieAtom } from '../../../../app/stores/game/game-store'
 import { MouseFollowerAlert } from '../../../../shared/ui/alerts/mouse-follower-aalert'
 import Cookies from 'js-cookie'
 
-
 interface IProps {
 	className?: string
 	isSticksLess: boolean

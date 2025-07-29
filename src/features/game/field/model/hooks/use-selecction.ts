@@ -1,12 +1,11 @@
 import { useState, useRef, useCallback } from 'react'
 import type { MouseEvent } from 'react'
-import type { IStick } from '../../../../../entities/sticks/model/interfaces/stick.interfaces';
+import type { IStick } from '../../../../../entities/sticks/model/interfaces/stick.interfaces'
 
 type Point = { x: number; y: number }
 
 export const useSelection = (
 	containerRef: React.RefObject<HTMLElement | null>,
-	// Принимаем текущий массив палочек и функцию для его обновления
 	sticksArr: IStick[],
 	setSticksArr: (newSticks: IStick[]) => void
 ) => {
@@ -34,13 +33,18 @@ export const useSelection = (
 		setStartPoint({ x: e.clientX, y: e.clientY })
 		setEndPoint({ x: e.clientX, y: e.clientY })
 
-		// Если не зажат Ctrl/Cmd, сбрасываем выделение
 		if (!e.metaKey && !e.ctrlKey) {
-			const newSticks = sticksArr.map(stick =>
-				stick.isSelected ? { ...stick, isSelected: false } : stick
-			)
-			// Проверяем, действительно ли что-то изменилось, чтобы избежать лишнего ре-рендера
-			if (newSticks.some((s, i) => s !== sticksArr[i])) {
+			// ✅ ИСПРАВЛЕННАЯ ЛОГИКА:
+			// 1. Сначала проверяем, есть ли вообще что сбрасывать.
+			const wasAnythingSelected = sticksArr.some(stick => stick.isSelected)
+
+			// 2. Если да, то создаем новый массив и обновляем состояние.
+			if (wasAnythingSelected) {
+				console.log('[useSelection] MouseDown: Сброс выделения')
+				const newSticks = sticksArr.map(stick => ({
+					...stick,
+					isSelected: false,
+				}))
 				setSticksArr(newSticks)
 			}
 		}
@@ -55,6 +59,8 @@ export const useSelection = (
 		if (!isDragging) return
 		setIsDragging(false)
 
+		console.log('[useSelection] MouseUp: Выделение рамкой')
+
 		const selectionBox = {
 			left: Math.min(startPoint.x, endPoint.x),
 			right: Math.max(startPoint.x, endPoint.x),
@@ -62,7 +68,6 @@ export const useSelection = (
 			bottom: Math.max(startPoint.y, endPoint.y),
 		}
 
-		// Вычисляем, какие палочки попали в область выделения
 		const newSticks = sticksArr.map(stick => {
 			const element = itemRefs.current.get(stick.id)
 			if (!element) return stick
@@ -74,7 +79,6 @@ export const useSelection = (
 				itemRect.top < selectionBox.bottom &&
 				itemRect.bottom > selectionBox.top
 
-			// Если палочка пересеклась, инвертируем ее состояние isSelected
 			if (isIntersecting) {
 				return { ...stick, isSelected: !stick.isSelected }
 			}
@@ -86,17 +90,15 @@ export const useSelection = (
 
 	const handleItemClick = (id: string | number, e: MouseEvent) => {
 		e.stopPropagation()
+		console.log(`[useSelection] ItemClick: Клик по палочке с ID: ${id}`)
 
 		const newSticks = sticksArr.map(stick => {
 			if (stick.id === id) {
-				// Логика клика с Ctrl/Cmd
 				if (e.metaKey || e.ctrlKey) {
 					return { ...stick, isSelected: !stick.isSelected }
 				}
-				// Логика обычного клика (выделить только эту, остальные снять)
 				return { ...stick, isSelected: true }
 			}
-			// Если это не целевая палочка, при обычном клике снимаем выделение
 			if (!e.metaKey && !e.ctrlKey) {
 				return { ...stick, isSelected: false }
 			}

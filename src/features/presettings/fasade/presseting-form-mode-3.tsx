@@ -5,16 +5,19 @@ import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
-import { setGameParamsToCookies } from '../../../app/stores/game/cookies/game-params/set-game-params-to-cookies'
 import { randomize } from '../model/helpers/randomize'
 import { makeSticksStartArr } from '../../../entities/sticks'
 import { useSetAtom } from 'jotai'
-import { sticksArrCookieAtom } from '../../../app/stores/game/game-store'
+import {
+	gameParamsCookieAtom,
+	sticksArrCookieAtom,
+} from '../../../app/stores/game/game-store'
 
 export function PressetingFormMode3() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
 	const [maxPerStepStreak, setMaxPerStepStreak] = useState<ISliderState>(1)
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
+	const setGameParams = useSetAtom(gameParamsCookieAtom)
 
 	useEffect(() => {
 		if (maxPerStepStreak > allCount) setMaxPerStepStreak(allCount)
@@ -22,7 +25,14 @@ export function PressetingFormMode3() {
 	// to fix a bug between two sliders
 
 	const handlePlayClick = () => {
-		setGameParamsToCookies({ sticksCount: allCount })
+		setGameParams({
+			sticksCount: allCount,
+			maxPerStepStreak,
+			maxPerStep: undefined,
+			sticksRange: undefined,
+			sticksRangeStreak: undefined,
+		})
+
 		setSticksArr(makeSticksStartArr(allCount))
 	}
 

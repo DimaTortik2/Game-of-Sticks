@@ -8,25 +8,34 @@ import type {
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
-import { setGameParamsToCookies } from '../../../app/stores/game/cookies/game-params/set-game-params-to-cookies'
 import { randomize } from '../model/helpers/randomize'
 import { randomizeRange } from '../model/helpers/randomize-range'
 import { makeSticksStartArr } from '../../../entities/sticks'
 import { useSetAtom } from 'jotai'
-import { sticksArrCookieAtom } from '../../../app/stores/game/game-store'
+import {
+	gameParamsCookieAtom,
+	sticksArrCookieAtom,
+} from '../../../app/stores/game/game-store'
 
 export function PressetingFormMode2() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
-	const [Range, setRange] = useState<ISliderRangeState>([1, 50])
+	const [range, setRange] = useState<ISliderRangeState>([1, 50])
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
+	const setGameParams = useSetAtom(gameParamsCookieAtom)
 
 	useEffect(() => {
-		if (Range[1] > allCount) setRange(prev => [prev[0], allCount])
+		if (range[1] > allCount) setRange(prev => [prev[0], allCount])
 	}, [allCount])
 	// to fix a bug between two sliders
 
 	const handlePlayClick = () => {
-		setGameParamsToCookies({ sticksCount: allCount })
+		setGameParams({
+			sticksCount: allCount,
+			sticksRange: range,
+			maxPerStep: undefined,
+			maxPerStepStreak: undefined,
+			sticksRangeStreak: undefined,
+		})
 		setSticksArr(makeSticksStartArr(allCount))
 	}
 
@@ -60,14 +69,14 @@ export function PressetingFormMode2() {
 						onChange={makeHandleSliderChange({
 							setSliderRangeState: setRange,
 						})}
-						value={Range}
+						value={range}
 						min={1}
 						max={allCount}
 						step={1}
 					/>
 				}
-				leftCount={Range[0]}
-				rightCount={Range[1]}
+				leftCount={range[0]}
+				rightCount={range[1]}
 				onRandomClick={() =>
 					setRange(randomizeRange({ from: 1, to: allCount }))
 				}

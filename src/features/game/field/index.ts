@@ -1,1 +1,7 @@
 export { GameFiled } from './ui/game-field'
+export * from './model/helpers/mode_1_2_check'
+export * from './model/helpers/mode_3_4_check'
+export * from './model/helpers/mode_5_check'
+export * from './model/helpers/move_1_2'
+export * from './model/helpers/move_3_4'
+export * from './model/helpers/move_5'

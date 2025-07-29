@@ -1,13 +1,15 @@
 import clsx from 'clsx'
 import { GameFiled } from '../../../features/game/field'
 
-import { getGameParamsFromCookies } from '../../../app/stores/game/cookies/game-params/get-game-params-from-cookies'
 import { Enviroment } from '../ui/enviroment'
+import { useAtomValue } from 'jotai'
+import { gameParamsCookieAtom } from '../../../app/stores/game/game-store'
 
 export function GamePage() {
-	const { sticksCount } = getGameParamsFromCookies()
-
+	const { sticksCount } = useAtomValue(gameParamsCookieAtom)
 	const isSticksLess = Boolean(sticksCount && sticksCount <= 25)
+
+	console.log({ sticksCount })
 
 	return (
 		<div

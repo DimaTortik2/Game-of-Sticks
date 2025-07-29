@@ -5,18 +5,28 @@ import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
-import { setGameParamsToCookies } from '../../../app/stores/game/cookies/game-params/set-game-params-to-cookies'
 import { randomize } from '../model/helpers/randomize'
 import { makeSticksStartArr } from '../../../entities/sticks'
 import { useSetAtom } from 'jotai'
-import { sticksArrCookieAtom } from '../../../app/stores/game/game-store'
+import {
+	gameParamsCookieAtom,
+	sticksArrCookieAtom,
+} from '../../../app/stores/game/game-store'
 
 export function PressetingFormMode5() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
+	const setGameParams = useSetAtom(gameParamsCookieAtom)
 
 	const handlePlayClick = () => {
-		setGameParamsToCookies({ sticksCount: allCount })
+		setGameParams({
+			sticksCount: allCount,
+			maxPerStep: undefined,
+			maxPerStepStreak: undefined,
+			sticksRange: undefined,
+			sticksRangeStreak: undefined,
+		})
+
 		setSticksArr(makeSticksStartArr(allCount))
 	}
 
