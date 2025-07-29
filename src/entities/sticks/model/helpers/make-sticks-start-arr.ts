@@ -7,7 +7,6 @@ export function makeSticksStartArr(allCount: number) {
 			isSelected: false,
 			id: i,
 			groupId: 0,
-			isWrong: false,
 		})
 	)
 }

@@ -3,18 +3,19 @@ import { ExitLinkButton } from '../../../shared/ui/btns-or-links/exit-link-butto
 import { GameState } from '../../../widgets/game'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
-import { useAtom } from 'jotai'
+import { useAtomValue } from 'jotai'
 
 import clsx from 'clsx'
 import { ToastContainer } from 'react-toastify'
 import { GameTableBtn } from '../../../features/game/table'
 import { sticksArrCookieAtom } from '../../../app/stores/game/game-store'
 import type { IStick } from '../../../entities/sticks/model/interfaces/stick.interfaces'
+import Cookies from 'js-cookie'
 
 export function Enviroment() {
-	const [sticksArr, setSticksArr] = useAtom<IStick[] | undefined>(
-		sticksArrCookieAtom
-	)
+	const isDev = Cookies.get('devMode') === 'true'
+
+	const sticksArr = useAtomValue<IStick[] | undefined>(sticksArrCookieAtom)
 
 	let selectedSticksCount = 0
 	sticksArr?.forEach(stick => {
@@ -32,23 +33,20 @@ export function Enviroment() {
 				draggable={false} // нельзя перетаскивать мышкой
 			/>
 
-			<GameTableBtn className='absolute left-[20px] bottom-[20px] z-20' />
+			<GameTableBtn
+				isVisible={isDev}
+				className='absolute left-[20px] bottom-[20px] z-20'
+			/>
 
 			<GamePageBackground />
 
-			<ExitLinkButton
-				to='/'
-				onClick={() =>
-					console.log('exit должен снимать выделение со всех палочек')
-				}
-				className='absolute left-[20px] top-[20px] z-20'
-			>
+			<ExitLinkButton to='/' className='absolute left-[20px] top-[20px] z-20'>
 				Выход
 			</ExitLinkButton>
 
 			<GameState
 				className='absolute left-1/2 transform -translate-x-1/2 top-[20px] select-none z-20'
-				isEnemyStep={true}
+				isEnemyStep={false} // пока что hard code
 				selectedCount={selectedSticksCount}
 			/>
 			<Clue className='z-20' />

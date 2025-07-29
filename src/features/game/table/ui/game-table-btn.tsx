@@ -3,7 +3,13 @@ import { toast } from 'react-toastify'
 import { GameTable } from './game-table'
 import clsx from 'clsx'
 
-export function GameTableBtn({ className }: { className?: string }) {
+export function GameTableBtn({
+	className,
+	isVisible,
+}: {
+	className?: string
+	isVisible: boolean
+}) {
 	const handleClick = () => {
 		toast(<GameTable />, {
 			containerId: 'gameTable',
@@ -17,7 +23,7 @@ export function GameTableBtn({ className }: { className?: string }) {
 		})
 	}
 
-	return (
+	return isVisible ? (
 		<div
 			onClick={handleClick}
 			className={clsx(
@@ -27,5 +33,7 @@ export function GameTableBtn({ className }: { className?: string }) {
 		>
 			<TocIcon />
 		</div>
+	) : (
+		<></>
 	)
 }

@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback } from 'react'
 import type { MouseEvent } from 'react'
 import type { IStick } from '../../../../../entities/sticks/model/interfaces/stick.interfaces';
 

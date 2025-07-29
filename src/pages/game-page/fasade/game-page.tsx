@@ -20,7 +20,6 @@ export function GamePage() {
 			<div className='h-screen w-screen flex flex-col'>
 				<main className='relative z-10 w-full p-8 flex justify-center items-center gap-16 flex-1'>
 					<GameFiled
-						sticksCount={sticksCount}
 						className={clsx(
 							sticksCount < 10
 								? ' w-[95%] max-w-[700px]'
