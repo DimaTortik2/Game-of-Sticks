@@ -7,12 +7,15 @@ interface StickProps {
 	onClick: (e: React.MouseEvent) => void
 	groupId: number
 	isDev: boolean
+	isInvisible: boolean
 }
 
 export const Stick = forwardRef<HTMLDivElement, StickProps>(
-	({ isSelected, onClick, groupId, isDev }, ref) => {
+	({ isSelected, isInvisible, onClick, groupId, isDev }, ref) => {
 		let backgroundColor: string
-		if (isSelected) backgroundColor = '#FFE5C1'
+
+		if (isInvisible) backgroundColor = 'transparent'
+		else if (isSelected) backgroundColor = '#FFE5C1'
 		else if (isDev) backgroundColor = PREDEFINED_COLORS[groupId]
 		else backgroundColor = '#DDA961'
 		return (

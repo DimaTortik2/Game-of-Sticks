@@ -1,25 +1,24 @@
 import CallReceivedIcon from '@mui/icons-material/CallReceived'
 import { IconButton } from '../../../../shared/ui/icons/icon-button'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { pluralizeSticks } from '../helpers/pluralize'
 import { PREDEFINED_COLORS } from '../../../../app/consts/colors'
 import clsx from 'clsx'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useAtom } from 'jotai'
 import {
 	sticksArrCookieAtom,
 	tableAtom,
 } from '../../../../app/stores/game/game-store'
-import type { IStick } from '../../../../entities/sticks/model/interfaces/stick.interfaces'
 
 interface GameTableProps {
 	closeToast?: () => void
 }
 
 export function GameTable({ closeToast }: GameTableProps) {
-	const sticksArr = useAtomValue<IStick[] | undefined>(sticksArrCookieAtom)
+	// ✅ 2. Используем единый хук useAtom для палочек
+	const [sticksArr, setSticksArr] = useAtom(sticksArrCookieAtom)
 
-	const setSticksArr = useSetAtom(sticksArrCookieAtom)
-
+	// ✅ 3. Используем единый хук useAtom для настроек
 	const [settings, setSettings] = useAtom(tableAtom)
 
 	const [inputValues, setInputValues] = useState({
@@ -27,96 +26,85 @@ export function GameTable({ closeToast }: GameTableProps) {
 		take: settings.take.toString(),
 	})
 
+	// Синхронизация инпутов с глобальным состоянием
+	useEffect(() => {
+		setInputValues({
+			skip: settings.skip.toString(),
+			take: settings.take.toString(),
+		})
+	}, [settings])
+
 	// Состояние для управления видом: таблица или палитра
 	const [view, setView] = useState<'table' | 'color-picker'>('table')
 	// Временно выбранный цвет в палитре
 	const [tempSelectedColor, setTempSelectedColor] = useState<string>('')
 
-	// Обработчик изменения значений в инпутах
 	const handleInputChange = (field: 'skip' | 'take', value: string) => {
-		// Разрешаем ввод только цифр (предотвращает ввод отрицательных и нечисловых значений)
 		if (/^\d*$/.test(value)) {
 			const numericValue = value === '' ? 0 : parseInt(value, 10)
-			// 1. Обновляем состояние для отображения в инпуте (может быть пустой строкой)
 			setInputValues(prev => ({
 				...prev,
 				[field]: numericValue > 50 ? '50' : value,
 			}))
-
-			// 2. Обновляем состояние для логики, преобразуя пустую строку в 0
 			setSettings(prev => ({
 				...prev,
 				[field]: numericValue > 50 ? 50 : numericValue,
 			}))
 		}
 	}
-	// Открывает палитру цветов
+
 	const handleOpenColorPicker = () => {
-		setTempSelectedColor(settings.color) // Запоминаем текущий цвет
+		setTempSelectedColor(settings.color)
 		setView('color-picker')
 	}
 
-	// Применяет выбранный цвет и возвращает к таблице
-	const handleSelectColor = (color: any) => {
+	const handleSelectColor = (color: string) => {
 		setSettings(prev => ({ ...prev, color }))
 		setView('table')
 	}
 
 	const handleFocus = (field: 'skip' | 'take') => {
-		// Если текущее значение в инпуте это "0"
 		if (inputValues[field] === '0') {
-			// ...то очищаем его, делая пустой строкой
 			setInputValues(prev => ({ ...prev, [field]: '' }))
 		}
 	}
 
-	// НОВАЯ ФУНКЦИЯ: Срабатывает, когда инпут теряет фокус
 	const handleBlur = (field: 'skip' | 'take') => {
-		// Если пользователь оставил поле пустым
 		if (inputValues[field] === '') {
-			// ...возвращаем "0", так как в логике это 0
 			setInputValues(prev => ({ ...prev, [field]: '0' }))
 		}
 	}
 
+	// ✅ Эта функция теперь будет работать корректно
 	const handleSelectBtnClick = () => {
-		// 1. Проверяем, что массив палочек вообще существует
 		if (!sticksArr) {
 			console.error('Массив палочек не загружен.')
 			return
 		}
 
-		// 2. Находим индекс цвета, чтобы получить groupId
 		const colorIndex = PREDEFINED_COLORS.findIndex(c => c === settings.color)
 
-		// Если такой цвет не найден в предопределенных, ничего не делаем
 		if (colorIndex === -1) {
 			console.error('Выбранный цвет не найден в палитре.')
 			return
 		}
 
-		// 3. Фильтруем все палочки, чтобы остались только те, что относятся к нашей группе (цвету)
 		const sticksOfSameColor = sticksArr.filter(
 			stick => stick.groupId === colorIndex
 		)
 
-		// 4. Из отфильтрованных палочек берем нужный срез (slice)
 		const sticksToSelect = sticksOfSameColor.slice(
 			settings.skip,
 			settings.skip + settings.take
 		)
 
-		// 5. Получаем ID палочек, которые нужно выделить
 		const idsToSelect = new Set(sticksToSelect.map(stick => stick.id))
 
-		// 6. Создаем новый массив, где у нужных палочек isSelected: true, а у всех остальных isSelected: false.
-		// Это логика "установить выделение", а не "добавить к выделению".
 		const newSticksArr = sticksArr.map(stick => ({
 			...stick,
 			isSelected: idsToSelect.has(stick.id),
 		}))
 
-		// 7. Обновляем глобальное состояние
 		setSticksArr(newSticksArr)
 	}
 

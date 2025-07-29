@@ -4,5 +4,7 @@ export function mode_3_4_check(
 	min: number,
 	max: number
 ) {
+	console.log({ positionBefore, positionAfter, min, max })
+
 	return true
 }

@@ -16,9 +16,7 @@ import type { IStick } from '../../../entities/sticks/model/interfaces/stick.int
 import Cookies from 'js-cookie'
 import { myStep } from '../../../features/game/field/model/helpers/my-step'
 import { getGameModeDataFromCookies } from '../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
-import { setGameParamsToCookies } from '../../../app/stores/game/cookies/game-params/set-game-params-to-cookies'
 import { codeSticksData } from '../../../features/game/field/model/helpers/code/code-sticks-data'
-import { decodeSticksData } from '../../../features/game/field/model/helpers/code/decode-sticks-data'
 import {
 	mode_1_2_check,
 	mode_3_4_check,
@@ -27,17 +25,11 @@ import {
 	move_3_4,
 	move_5,
 } from '../../../features/game/field'
-import type { IGameParams } from '../../../app/stores/interfaces/game-params.interface'
 
 export function Enviroment() {
 	const gameParams = useAtomValue(gameParamsCookieAtom)
-	const {
-		sticksCount,
-		maxPerStep,
-		maxPerStepStreak,
-		sticksRange,
-		sticksRangeStreak,
-	} = gameParams
+	const { maxPerStep, maxPerStepStreak, sticksRange, sticksRangeStreak } =
+		gameParams
 
 	const setGameParams = useSetAtom(gameParamsCookieAtom)
 
