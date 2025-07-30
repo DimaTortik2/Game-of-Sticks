@@ -9,7 +9,7 @@ export function HelpBtn({ onClick }: { onClick: () => void }) {
 
 	// handleClick больше не нужен, мы используем пропс
 
-	return (
+	return helpsCount !== 0 ? (
 		<div className='flex gap-1 items-end'>
 			<div
 				className='p-5 rounded-full bg-[#3e3e3e] flex justify-center items-center transition-transform transform hover:scale-110 cursor-pointer'
@@ -22,5 +22,7 @@ export function HelpBtn({ onClick }: { onClick: () => void }) {
 				{helpsCount}
 			</div>
 		</div>
+	) : (
+		<></>
 	)
 }
