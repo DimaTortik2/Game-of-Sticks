@@ -62,7 +62,7 @@ export const ShinyTitle: React.FC = () => {
 					}}
 				>
 					<div
-						className='bg-[#3e3e3e] z-60 text-[#e8e8e8] p-14 rounded-2xl max-w-[95vw] cursor-pointer'
+						className='bg-[#3e3e3e] z-60 text-[#e8e8e8] p-14 rounded-2xl max-w-[95vw] cursor-pointer transition-transform transform hover:scale-101'
 						onClick={() => setIsModalVisible(true)}
 					>
 						<motion.p
