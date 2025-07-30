@@ -21,6 +21,8 @@ import { PresettingPushBtn } from '../ui/presseting-push-btn'
 export function PressetingFormMode2() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
 	const [range, setRange] = useState<ISliderRangeState>([1, 50])
+	const [helpsCount, setHelpsCount] = useState<ISliderState>(1)
+
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
 	const setGameParams = useSetAtom(gameParamsCookieAtom)
 	const [isFirstComputerStep, setIsFirstComputerStep] = useState(false)
@@ -38,6 +40,8 @@ export function PressetingFormMode2() {
 			maxPerStepStreak: undefined,
 			sticksRangeStreak: undefined,
 			isFirstComputerStep,
+			isEnemyStep: isFirstComputerStep,
+			helpsCount,
 		})
 		setSticksArr(makeSticksStartArr(allCount))
 	}
@@ -84,13 +88,31 @@ export function PressetingFormMode2() {
 					setRange(randomizeRange({ from: 1, to: allCount }))
 				}
 			/>
+			<PresettingItem
+				title='Количество подсказок'
+				min={0}
+				max={5}
+				slider={
+					<PresettingSlider
+						onChange={makeHandleSliderChange({
+							setSliderState: setHelpsCount,
+						})}
+						value={helpsCount}
+						min={0}
+						max={5}
+						step={1}
+					/>
+				}
+				rightCount={helpsCount}
+				onRandomClick={() => setHelpsCount(randomize({ from: 0, to: 5 }))}
+			/>
 			<PresettingPushBtn
-							title='Сначала ходит компьютер'
-							onClick={() => {
-								setIsFirstComputerStep(prev => !prev)
-							}}
-							isActive={isFirstComputerStep}
-						/>
+				title='Сначала ходит компьютер'
+				onClick={() => {
+					setIsFirstComputerStep(prev => !prev)
+				}}
+				isActive={isFirstComputerStep}
+			/>
 			<Clue />
 
 			<PlayButton onClick={handlePlayClick} />
