@@ -4,18 +4,19 @@ import { GameState } from '../../../widgets/game'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
 import { useAtomValue, useSetAtom } from 'jotai'
-import { useEffect, useState } from 'react' // 1. Импортируем useState
+import { useEffect, useState } from 'react'
 import clsx from 'clsx'
 import { ToastContainer } from 'react-toastify'
 import { GameTools } from '../../../features/game/table'
 import {
 	gameParamsCookieAtom,
 	sticksArrCookieAtom,
+	winnerAtomCookieAtom,
 } from '../../../app/stores/game/game-store'
 import type { IStick } from '../../../entities/sticks/model/interfaces/stick.interfaces'
 import Cookies from 'js-cookie'
 import { myStep } from '../../../features/game/field/model/helpers/my-step'
-import { getGameModeDataFromCookies } from '../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
+
 import { codeSticksData } from '../../../features/game/field/model/helpers/code/code-sticks-data'
 import {
 	mode_1_2_check,
@@ -25,6 +26,8 @@ import {
 	move_3_4,
 	move_5,
 } from '../../../features/game/field'
+import { EndGameModal } from '../../../features/game/table/ui/EndGameModal'
+import { getGameModeDataFromCookies } from '../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
 
 export function Enviroment() {
 	const gameParams = useAtomValue(gameParamsCookieAtom)
@@ -43,10 +46,10 @@ export function Enviroment() {
 	const sticksArr = useAtomValue<IStick[] | undefined>(sticksArrCookieAtom)
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
 
-	// ✅ 2. Создаем локальное состояние ТОЛЬКО для визуального эффекта подсказки
 	const [isHelping, setIsHelping] = useState(false)
 
-	// "Чистая" функция: вычисляет ход ИИ, но не меняет состояние
+	const setWinner = useSetAtom(winnerAtomCookieAtom)
+
 	const calculateAiMove = (
 		currentSticks: IStick[],
 		currentParams: typeof gameParams
@@ -111,9 +114,6 @@ export function Enviroment() {
 		return myStep(tempArrayForRegrouping)
 	}
 
-	// ==================================================================
-	// ЛОГИКА ДЛЯ КНОПКИ "ПОДСКАЗКА" (ИСПРАВЛЕННАЯ ВЕРСИЯ)
-	// ==================================================================
 	const handleHelpClick = () => {
 		// Блокируем, если ходит ИИ, нет подсказок или игра не началась
 		if (
@@ -127,20 +127,16 @@ export function Enviroment() {
 		console.log('Игрок использует подсказку...')
 
 		// --- ЭТАП 0: Начало ---
-		// Сразу же включаем состояние "Подсказка" и уменьшаем счетчик.
-		// GameState: "Подсказка..."
-		setSticksArr(sticksArr.map(stick => ({ ...stick, isSelected: false }))) //снимаем выделение
+		setSticksArr(sticksArr.map(stick => ({ ...stick, isSelected: false }))) // снимаем выделение
 		setIsHelping(true)
 		setGameParams({ ...gameParams, helpsCount: (helpsCount || 0) - 1 })
 
 		// --- ЭТАП 1: Ход-подсказка (через 1 секунду) ---
 		setTimeout(() => {
-			if (!sticksArr) return // Проверка на случай размонтирования
+			if (!sticksArr) return
 
-			// Вычисляем ход, который ИИ сделал бы за игрока
 			const helpMoveResult = calculateAiMove(sticksArr, gameParams)
 			if (!helpMoveResult) {
-				// Если ИИ не смог сходить, отменяем все и возвращаем ход игроку
 				setIsHelping(false)
 				setGameParams({
 					...gameParams,
@@ -150,23 +146,26 @@ export function Enviroment() {
 				return
 			}
 
-			// Применяем ход-подсказку
-			setSticksArr(helpMoveResult)
+			// ✅ ПРОВЕРКА ПОБЕДИТЕЛЯ №1: После хода-подсказки
+			if (helpMoveResult.length === 0) {
+				setSticksArr(helpMoveResult)
+				setWinner('player') // Игрок "сделал" ход и проиграл
+				setIsHelping(false)
+				return // Прерываем цепочку, игра окончена
+			}
 
-			// --- ЭТАП 2: Переход к ходу врага ---
-			// Выключаем "Подсказку" и включаем "Ход противника"
-			// GameState: "Ход противника"
+			setSticksArr(helpMoveResult)
 			setIsHelping(false)
 			const paramsAfterHelp = {
 				...gameParams,
 				sticksCount: helpMoveResult.length,
-				helpsCount: (helpsCount || 0) - 1, // Убедимся, что счетчик обновлен
+				helpsCount: (helpsCount || 0) - 1,
 				isEnemyStep: true,
 			}
 			setGameParams(paramsAfterHelp)
 			console.log('GameState: Ход переходит к врагу.')
 
-			// --- ЭТАП 3: Настоящий ход ИИ (еще через 1.5 секунды) ---
+			// --- ЭТАП 2: Настоящий ход ИИ (еще через 1.5 секунды) ---
 			setTimeout(() => {
 				const realAiMoveResult = calculateAiMove(
 					helpMoveResult,
@@ -177,8 +176,13 @@ export function Enviroment() {
 					return
 				}
 
-				// Применяем ход ИИ и возвращаем ход игроку
-				// GameState: "Ваш ход"
+				// ✅ ПРОВЕРКА ПОБЕДИТЕЛЯ №2: После ответного хода ИИ
+				if (realAiMoveResult.length === 0) {
+					setSticksArr(realAiMoveResult)
+					setWinner('enemy') // ИИ сделал ход и проиграл
+					return // Прерываем цепочку, игра окончена
+				}
+
 				setSticksArr(realAiMoveResult)
 				setGameParams({
 					...paramsAfterHelp,
@@ -190,7 +194,6 @@ export function Enviroment() {
 		}, 1000)
 	}
 
-	// Логика хода игрока
 	const mainlogic = () => {
 		if (!sticksArr || isEnemyStep || selectedSticksCount === 0) return
 
@@ -245,6 +248,13 @@ export function Enviroment() {
 			return
 		}
 
+		// Проверка на окончание игры ПОСЛЕ ХОДА ИГРОКА
+		if (playerMoveResult.length === 0) {
+			setSticksArr(playerMoveResult)
+			setWinner('player') // Игрок проиграл -> победил враг
+			return
+		}
+
 		setSticksArr(playerMoveResult)
 		const newParams = {
 			...gameParams,
@@ -256,6 +266,13 @@ export function Enviroment() {
 		setTimeout(() => {
 			const aiMoveResult = calculateAiMove(playerMoveResult, newParams)
 			if (aiMoveResult) {
+				// Проверка на окончание игры ПОСЛЕ ХОДА ИИ
+				if (aiMoveResult.length === 0) {
+					setSticksArr(aiMoveResult)
+					setWinner('enemy') // ИИ проиграл -> победил игрок
+					return
+				}
+
 				setSticksArr(aiMoveResult)
 				setGameParams({
 					...newParams,
@@ -266,7 +283,6 @@ export function Enviroment() {
 		}, 1000)
 	}
 
-	// Эффект для первого хода компьютера
 	useEffect(() => {
 		if (sticksArr && sticksArr.length > 0 && isFirstComputerStep) {
 			console.log('Первый ход компьютера...')
@@ -275,6 +291,13 @@ export function Enviroment() {
 			setTimeout(() => {
 				const aiMoveResult = calculateAiMove(sticksArr, gameParams)
 				if (aiMoveResult) {
+					if (aiMoveResult.length === 0) {
+						console.log('ИИ взял последнюю палочку. ИИ проиграл.')
+						setSticksArr(aiMoveResult)
+						setWinner('player')
+						return
+					}
+
 					setSticksArr(aiMoveResult)
 					setGameParams({
 						...gameParams,
@@ -292,6 +315,8 @@ export function Enviroment() {
 
 	return (
 		<>
+			<EndGameModal />
+
 			<ToastContainer
 				containerId={'gameTable'}
 				position='bottom-left'
@@ -313,7 +338,7 @@ export function Enviroment() {
 				className='absolute left-1/2 transform -translate-x-1/2 top-[20px] select-none z-20'
 				isEnemyStep={isEnemyStep}
 				selectedCount={selectedSticksCount}
-				isHelping={isHelping} // ✅ Передаем новое состояние в GameState
+				isHelping={isHelping}
 			/>
 			<Clue className='z-20' />
 

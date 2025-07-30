@@ -7,6 +7,8 @@ import type { IGameParams } from '../interfaces/game-params.interface'
 import { getGameParamsFromCookies } from './cookies/game-params/get-game-params-from-cookies'
 import { setGameParamsToCookies } from './cookies/game-params/set-game-params-to-cookies'
 import { addSeparatorsToSticks } from '../../../features/game/field/model/helpers/add-separation-sticks'
+import { getWinnerFromCookies } from './cookies/winner/get-winner-from-cookies'
+import { setWinnerToCookies } from './cookies/winner/set-winner-to-cookies'
 
 const sticksArrAtom = atom<IStick[] | undefined>(
 	getSticksArrFromCookies() as IStick[] | undefined
@@ -56,4 +58,15 @@ export const tableAtom = atom({
 	take: 1,
 })
 
+const winnerAtom = atom<'player' | 'enemy' | undefined>(
+	getWinnerFromCookies() as 'player' | 'enemy' | undefined
+)
 
+export const winnerAtomCookieAtom = atom(
+	get => get(winnerAtom),
+
+	(_, set, newSWinner: 'player' | 'enemy' | undefined) => {
+		setWinnerToCookies(newSWinner)
+		set(winnerAtom, newSWinner)
+	}
+)
