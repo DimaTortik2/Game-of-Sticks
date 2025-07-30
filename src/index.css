@@ -56,3 +56,29 @@
   /* Это не даст внутреннему блоку вылезти за края скругленного родителя. */
   border-radius: 12px !important;
 }
+
+
+/* animations */
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* 
+  Создаем наш собственный класс-утилиту, который будет применять эту анимацию.
+*/
+.animate-gradient {
+  /* 
+    Очень важный момент: чтобы фон мог двигаться, он должен быть больше,
+    чем сам элемент. Мы делаем его в 2 раза шире.
+  */
+  background-size: 200% auto;
+  animation: gradient-animation 3s ease-in-out infinite;
+}
