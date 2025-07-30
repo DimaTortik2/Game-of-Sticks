@@ -3,6 +3,9 @@ import Cookies from 'js-cookie'
 import { useState } from 'react'
 
 export function BottomBtns() {
+	if (Cookies.get('devMode') === undefined) {
+		Cookies.set('devMode', 'true')
+	}
 	const [isClueChecked, setIsClueChecked] = useState(
 		Cookies.get('noClue') === 'true'
 	)

@@ -7,6 +7,7 @@ import { MainPageBackground } from '../../../shared/ui/bg/main-page-background'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
 
 export const MainMenuPage = () => {
+	
 	return (
 		<div className='relative h-screen w-full bg-[#212121] flex items-center justify-center overflow-hidden font-sans'>
 			<MainPageBackground />
