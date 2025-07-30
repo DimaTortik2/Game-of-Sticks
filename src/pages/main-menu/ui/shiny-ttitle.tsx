@@ -1,7 +1,10 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion'
+import { AboutModal } from '../../../widgets/modals/about-model'
 
 export const ShinyTitle: React.FC = () => {
+	const [isModalVisible, setIsModalVisible] = useState(false)
+
 	const containerRef = useRef<HTMLDivElement>(null)
 
 	const mouseX = useMotionValue(50)
@@ -46,28 +49,37 @@ export const ShinyTitle: React.FC = () => {
 	}
 
 	return (
-		<div
-			ref={containerRef}
-			onMouseMove={handleMouseMove}
-			onMouseLeave={handleMouseLeave}
-			className='w-screen z-[30] flex items-center justify-center bg-[#212121] py-20'
-		>
-			<motion.div
-				style={{
-					rotate,
-				}}
+		<>
+			<div
+				ref={containerRef}
+				onMouseMove={handleMouseMove}
+				onMouseLeave={handleMouseLeave}
+				className='w-screen z-[30] flex items-center justify-center bg-[#212121] py-20'
 			>
-				<div className='bg-[#3e3e3e] z-60 text-[#e8e8e8] p-14 rounded-2xl max-w-[95vw]'>
-					<motion.p
-						className='text-7xl font-bold bg-clip-text text-transparent'
-						style={{
-							backgroundImage,
-						}}
+				<motion.div
+					style={{
+						rotate,
+					}}
+				>
+					<div
+						className='bg-[#3e3e3e] z-60 text-[#e8e8e8] p-14 rounded-2xl max-w-[95vw] cursor-pointer'
+						onClick={() => setIsModalVisible(true)}
 					>
-						About Sticks
-					</motion.p>
-				</div>
-			</motion.div>
-		</div>
+						<motion.p
+							className='text-7xl font-bold bg-clip-text text-transparent'
+							style={{
+								backgroundImage,
+							}}
+						>
+							About Sticks
+						</motion.p>
+					</div>
+				</motion.div>
+			</div>
+			<AboutModal
+				isVisible={isModalVisible}
+				onClose={() => setIsModalVisible(false)}
+			/>
+		</>
 	)
 }
