@@ -129,6 +129,7 @@ export function Enviroment() {
 		// --- ЭТАП 0: Начало ---
 		// Сразу же включаем состояние "Подсказка" и уменьшаем счетчик.
 		// GameState: "Подсказка..."
+		setSticksArr(sticksArr.map(stick => ({ ...stick, isSelected: false }))) //снимаем выделение
 		setIsHelping(true)
 		setGameParams({ ...gameParams, helpsCount: (helpsCount || 0) - 1 })
 
