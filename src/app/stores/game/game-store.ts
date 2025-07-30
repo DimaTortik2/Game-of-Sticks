@@ -6,6 +6,7 @@ import { PREDEFINED_COLORS } from '../../consts/colors'
 import type { IGameParams } from '../interfaces/game-params.interface'
 import { getGameParamsFromCookies } from './cookies/game-params/get-game-params-from-cookies'
 import { setGameParamsToCookies } from './cookies/game-params/set-game-params-to-cookies'
+import { addSeparatorsToSticks } from '../../../features/game/field/model/helpers/add-separation-sticks'
 
 const sticksArrAtom = atom<IStick[] | undefined>(
 	getSticksArrFromCookies() as IStick[] | undefined
@@ -24,11 +25,26 @@ const gameParamsAtom = atom<IGameParams>(
 	getGameParamsFromCookies() as IGameParams
 )
 
+export const sticksWithSeparatorsCountAtom = atom<number>(get => {
+	// а) Получаем текущий массив реальных палочек
+	const realSticks = get(sticksArrCookieAtom)
+
+	// б) Если палочек нет, возвращаем 0
+	if (!realSticks) {
+		return 0
+	}
+
+	// в) Вызываем нашу чистую функцию для добавления разделителей
+	const sticksWithSeparators = addSeparatorsToSticks(realSticks)
+
+	// г) Возвращаем длину получившегося массива
+	return sticksWithSeparators.length
+})
+
 export const gameParamsCookieAtom = atom(
 	get => get(gameParamsAtom),
 
 	(_, set, newGameParams: IGameParams) => {
-		
 		setGameParamsToCookies(newGameParams)
 		set(gameParamsAtom, newGameParams)
 	}
@@ -39,3 +55,5 @@ export const tableAtom = atom({
 	skip: 0,
 	take: 1,
 })
+
+

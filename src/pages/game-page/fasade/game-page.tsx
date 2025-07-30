@@ -3,13 +3,14 @@ import { GameFiled } from '../../../features/game/field'
 
 import { Enviroment } from '../ui/enviroment'
 import { useAtomValue } from 'jotai'
-import { gameParamsCookieAtom } from '../../../app/stores/game/game-store'
+import { sticksWithSeparatorsCountAtom } from '../../../app/stores/game/game-store'
 
 export function GamePage() {
-	const { sticksCount } = useAtomValue(gameParamsCookieAtom)
-	const isSticksLess = Boolean(sticksCount && sticksCount <= 25)
+	const sticksWithShadowSticksCount = useAtomValue(
+		sticksWithSeparatorsCountAtom
+	)
 
-	console.log({ sticksCount })
+	const isSticksLess = sticksWithShadowSticksCount <= 25
 
 	return (
 		<div
@@ -23,9 +24,9 @@ export function GamePage() {
 				<main className='relative z-10 w-full p-8 flex justify-center items-center gap-16 flex-1'>
 					<GameFiled
 						className={clsx(
-							sticksCount < 10
+							sticksWithShadowSticksCount < 10
 								? ' w-[95%] max-w-[700px]'
-								: sticksCount < 15
+								: sticksWithShadowSticksCount < 15
 								? 'w-[95%] max-w-[1000px]'
 								: ' w-[95%] max-w-[1800px] ',
 							isSticksLess ? 'h-[35%] max-h-[325px]' : 'h-[70%] max-h-[650px]'

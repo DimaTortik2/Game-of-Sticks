@@ -4,4 +4,5 @@ export interface IGameParams {
 	maxPerStepStreak?: number
 	sticksRange?: number[]
 	sticksRangeStreak?: number[]
+	isFirstComputerStep: boolean
 }

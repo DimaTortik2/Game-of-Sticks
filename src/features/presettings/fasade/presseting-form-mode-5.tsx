@@ -12,11 +12,13 @@ import {
 	gameParamsCookieAtom,
 	sticksArrCookieAtom,
 } from '../../../app/stores/game/game-store'
+import { PresettingPushBtn } from '../ui/presseting-push-btn'
 
 export function PressetingFormMode5() {
 	const [allCount, setAllCount] = useState<ISliderState>(5)
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
 	const setGameParams = useSetAtom(gameParamsCookieAtom)
+	const [isFirstComputerStep, setIsFirstComputerStep] = useState(false)
 
 	const handlePlayClick = () => {
 		setGameParams({
@@ -25,6 +27,7 @@ export function PressetingFormMode5() {
 			maxPerStepStreak: undefined,
 			sticksRange: undefined,
 			sticksRangeStreak: undefined,
+			isFirstComputerStep,
 		})
 
 		setSticksArr(makeSticksStartArr(allCount))
@@ -49,6 +52,13 @@ export function PressetingFormMode5() {
 				}
 				rightCount={allCount}
 				onRandomClick={() => setAllCount(randomize({ from: 5, to: 50 }))}
+			/>
+			<PresettingPushBtn
+				title='Сначала ходит компьютер'
+				onClick={() => {
+					setIsFirstComputerStep(prev => !prev)
+				}}
+				isActive={isFirstComputerStep}
 			/>
 			<Clue />
 
