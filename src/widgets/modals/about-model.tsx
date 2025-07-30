@@ -13,7 +13,7 @@ export function AboutModal({
 			onClose={onClose}
 			className='w-[95vw] max-w-[1000px]'
 		>
-			<div className='absolute top-0 left-0 w-16 h-16 bg-[#d3d3d350] [clip-path:polygon(0_0,100%_0,0_100%)] rounded-tl-2xl' />
+			<div className='absolute top-0 left-0 w-16 h-12 bg-[#d3d3d350] [clip-path:polygon(0_0,100%_0,0_100%)] rounded-tl-2xl' />
 			<div className='absolute bottom-0 right-0 w-20 h-20 bg-[#d3d3d350] [clip-path:polygon(100%_100%,0_100%,100%_0)] rounded-br-2xl' />
 
 			<div className='flex flex-col items-center justify-center p-5 gap-5'>
