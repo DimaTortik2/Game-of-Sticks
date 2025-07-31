@@ -22,7 +22,7 @@ export function GameParams({
 		return (
 			<div
 				className={clsx(
-					'rounded-2xl bg-[#3d3d3d] flex gap-4 p-[14px] items-center text-[#e8e8e8]',
+					'rounded-2xl bg-[#3d3d3d] flex gap-4 py-3 px-4 items-center text-[#e8e8e8]',
 					className
 				)}
 			>
