@@ -7,7 +7,7 @@ import { winnerAtomCookieAtom } from '../../../../app/stores/game/game-store'
 
 export function EndGameModal() {
 	const navigate = useNavigate()
-	const [countdown, setCountdown] = useState(3)
+	const [countdown, setCountdown] = useState(5)
 
 	// 2. Используем useAtom для большей надежности и чистоты кода
 	const [winner, setWinner] = useAtom(winnerAtomCookieAtom)
@@ -24,7 +24,7 @@ export function EndGameModal() {
 		let timeoutId: ReturnType<typeof setInterval> | undefined
 
 		if (isVisible) {
-			setCountdown(3)
+			setCountdown(5)
 
 			intervalId = setInterval(() => {
 				setCountdown(prev => (prev > 0 ? prev - 1 : 0))
@@ -40,7 +40,7 @@ export function EndGameModal() {
 				setTimeout(() => {
 					navigate('/')
 				}, 100)
-			}, 3000)
+			}, 5000)
 
 			return () => {
 				clearInterval(intervalId)

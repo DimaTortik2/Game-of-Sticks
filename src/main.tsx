@@ -11,6 +11,7 @@ import { MainMenuPage } from './pages/main-menu/fasade/main-menu-page'
 import { PresettingsPage } from './pages/presettings/fasade/presittings-page'
 import { useBackToast } from './shared/model/hooks/use-back-toast'
 import { GamePage } from './pages/game-page/fasade/game-page'
+import { MusicController } from './features/music'
 
 const pageVariants = {
 	initial: {
@@ -101,6 +102,7 @@ const AnimatedRoutes = () => {
 createRoot(document.getElementById('root')!).render(
 	<StrictMode>
 		<BrowserRouter>
+			<MusicController />
 			<div className='relative w-full min-h-screen bg-[#e8e8e8]'>
 				<AnimatedRoutes />
 			</div>

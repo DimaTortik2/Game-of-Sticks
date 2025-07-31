@@ -2,6 +2,7 @@ import Checkbox from '@mui/material/Checkbox'
 import Cookies from 'js-cookie'
 import { useEffect, useState } from 'react'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import { MusicButton } from '../../music'
 
 export function BottomBtns() {
 	useEffect(() => {
@@ -59,7 +60,9 @@ export function BottomBtns() {
 			>
 				<KeyboardArrowDownIcon sx={{ fontSize: 30 }} />
 			</div>
-			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
+			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] px-5 py-3 rounded-2xl text-[#e8e8e8]'>
+				<MusicButton className='mx-2 w-4 h-4 z-[20]' isSmall={true} />
+
 				<div className='flex gap-5'>
 					<p>Отключить всплывающие подсказки</p>
 					<Checkbox

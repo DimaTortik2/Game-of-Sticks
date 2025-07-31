@@ -27,7 +27,7 @@ export function GameTableBtn({
 		<div
 			onClick={handleClick}
 			className={clsx(
-				'p-5 rounded-full bg-[#3e3e3e] transition-transform transform hover:scale-110 cursor-pointer',
+				' p-5 rounded-full bg-[#3e3e3e] transition-transform transform hover:scale-110 cursor-pointer flex items-center justify-center',
 				className
 			)}
 		>

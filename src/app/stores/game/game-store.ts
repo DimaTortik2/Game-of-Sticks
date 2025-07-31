@@ -73,3 +73,7 @@ export const winnerAtomCookieAtom = atom(
 
 export const isHelpingAtom = atom(false)
 export const isEnemyStep = atom(false)
+
+
+export const isMusicPlayingAtom = atom(false)
+export const activeMusicTrackAtom = atom<string | null>(null)
