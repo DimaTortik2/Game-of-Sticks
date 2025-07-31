@@ -3,13 +3,14 @@ import { ExitLinkButton } from '../../../shared/ui/btns-or-links/exit-link-butto
 import { GameState } from '../../../widgets/game'
 import { Clue } from '../../../shared/ui/alerts/clue'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
-import { useAtomValue, useSetAtom } from 'jotai'
-import { useEffect, useState } from 'react'
+import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useEffect } from 'react'
 import clsx from 'clsx'
 import { ToastContainer } from 'react-toastify'
 import { GameTools } from '../../../features/game/table'
 import {
 	gameParamsCookieAtom,
+	isHelpingAtom,
 	sticksArrCookieAtom,
 	winnerAtomCookieAtom,
 } from '../../../app/stores/game/game-store'
@@ -63,7 +64,7 @@ export function Enviroment() {
 	const sticksArr = useAtomValue<IStick[] | undefined>(sticksArrCookieAtom)
 	const setSticksArr = useSetAtom(sticksArrCookieAtom)
 
-	const [isHelping, setIsHelping] = useState(false)
+	const [isHelping, setIsHelping] = useAtom(isHelpingAtom)
 
 	const setWinner = useSetAtom(winnerAtomCookieAtom)
 	const { modeNum } = getGameModeDataFromCookies()
@@ -350,7 +351,10 @@ export function Enviroment() {
 				draggable={false}
 			/>
 
-			<GameTools isDev={isDev} onHelpClick={handleHelpClick} />
+			<GameTools
+				isDev={isDev}
+				onHelpClick={handleHelpClick}
+			/>
 
 			<GamePageBackground />
 

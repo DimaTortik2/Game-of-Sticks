@@ -70,3 +70,6 @@ export const winnerAtomCookieAtom = atom(
 		set(winnerAtom, newSWinner)
 	}
 )
+
+export const isHelpingAtom = atom(false)
+export const isEnemyStep = atom(false)

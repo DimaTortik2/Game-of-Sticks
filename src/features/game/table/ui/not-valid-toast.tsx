@@ -5,11 +5,11 @@ export function NotValidToast() {
 
 	
 	return (
-		<div className='text-[#e8e8e8] rounded-3xl max-w-[600px]'>
-			<p className='w-full rounded-t-2xl bg-[#6d4242] p-2'>
+		<div className='text-[#e8e8e8] rounded-3xl '>
+			<p className='w-full rounded-t-2xl bg-[#6d4242] p-3'>
 				Неверный ход в режиме "{modeName}" !
 			</p>
-			<div className='p-2 pb-3  bg-[#3E3E3E] flex flex-col'>
+			<div className='pt-2 px-3 pb-3  bg-[#3E3E3E] flex flex-col'>
 				<p>{modeDesc}</p>
 			</div>
 		</div>

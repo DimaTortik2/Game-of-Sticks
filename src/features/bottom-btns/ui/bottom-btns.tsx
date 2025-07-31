@@ -7,6 +7,7 @@ export function BottomBtns() {
 	useEffect(() => {
 		if (Cookies.get('devMode') === undefined) {
 			Cookies.set('devMode', 'true')
+			setIsDevChecked(true)
 		}
 	}, [])
 
@@ -64,7 +65,6 @@ export function BottomBtns() {
 					<Checkbox
 						checked={isClueChecked}
 						onChange={handleClueClick}
-						// name='gender-radio-buttons'
 						sx={{
 							height: '24px',
 							width: '24px',

@@ -2,8 +2,12 @@ import clsx from 'clsx'
 import { GameFiled } from '../../../features/game/field'
 
 import { Enviroment } from '../ui/enviroment'
-import { useAtomValue } from 'jotai'
-import { sticksWithSeparatorsCountAtom } from '../../../app/stores/game/game-store'
+import { useAtomValue, useSetAtom } from 'jotai'
+import {
+	sticksWithSeparatorsCountAtom,
+	winnerAtomCookieAtom,
+} from '../../../app/stores/game/game-store'
+import { useEffect } from 'react'
 
 export function GamePage() {
 	const sticksWithShadowSticksCount = useAtomValue(
@@ -11,6 +15,11 @@ export function GamePage() {
 	)
 
 	const isSticksLess = sticksWithShadowSticksCount <= 25
+
+	const setIsWinner = useSetAtom(winnerAtomCookieAtom)
+	useEffect(() => {
+		setIsWinner(null)
+	}, [])
 
 	return (
 		<div

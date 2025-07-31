@@ -1,52 +1,53 @@
 import clsx from 'clsx'
 import { BasicModal } from '../../../../shared/ui/modal/basic-modal'
-import { useState, useEffect } from 'react' // 1. Импортируем хуки
-import { useNavigate } from 'react-router-dom' // 2. Импортируем хук для навигации
-import { useAtomValue, useSetAtom } from 'jotai'
+import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { useAtom } from 'jotai' // 1. Меняем импорт на useAtom
 import { winnerAtomCookieAtom } from '../../../../app/stores/game/game-store'
 
 export function EndGameModal() {
-	const navigate = useNavigate() // 3. Инициализируем хук навигации
-	const [countdown, setCountdown] = useState(3) // 4. Состояние для таймера
+	const navigate = useNavigate()
+	const [countdown, setCountdown] = useState(3)
 
-	const winner = useAtomValue<'player' | 'enemy' | null>(winnerAtomCookieAtom)
+	// 2. Используем useAtom для большей надежности и чистоты кода
+	const [winner, setWinner] = useAtom(winnerAtomCookieAtom)
 
-	const setWinner = useSetAtom(winnerAtomCookieAtom)
+	// ✅ 3. ГЛАВНОЕ ИСПРАВЛЕНИЕ: Правильная логика видимости
+	// Модальное окно видно, только если `winner` имеет "истинное" значение,
+	// то есть не `null`, не `undefined` и не пустую строку.
+	const isVisible = !!winner
 
-	console.log({ winner })
-
-	const isVisible = winner !== null
 	const isEnemyWin = winner === 'enemy'
 
 	useEffect(() => {
-		// Этот эффект будет запускаться каждый раз, когда модальное окно становится видимым
+		let intervalId: ReturnType<typeof setInterval> | undefined
+		let timeoutId: ReturnType<typeof setInterval> | undefined
+
 		if (isVisible) {
-			// Сбрасываем таймер на 3 секунды при каждом открытии
 			setCountdown(3)
 
-			// Устанавливаем интервал, который будет срабатывать каждую секунду
-			const intervalId = setInterval(() => {
-				setCountdown(prevCountdown => prevCountdown - 1)
+			intervalId = setInterval(() => {
+				setCountdown(prev => (prev > 0 ? prev - 1 : 0))
 			}, 1000)
 
-			// Устанавливаем тайм-аут для редиректа через 3 секунды
-			const timeoutId = setTimeout(() => {
+			timeoutId = setTimeout(() => {
+				// Используем `null` для очистки, так как это более семантически верно
 				setWinner(null)
+
+				// Задержка больше не нужна, так как мы используем `useAtom`,
+				// который более надежно обрабатывает асинхронные обновления.
+				// Но оставим ее для 100% гарантии, что кука успеет удалиться.
 				setTimeout(() => {
-					console.log('Переход на главную страницу...')
 					navigate('/')
 				}, 100)
 			}, 3000)
 
-			// ✅ ВАЖНО: Функция очистки.
-			// Она выполнится, когда компонент размонтируется или isVisible изменится.
-			// Это предотвращает утечки памяти и баги.
 			return () => {
 				clearInterval(intervalId)
 				clearTimeout(timeoutId)
 			}
 		}
-	}, [isVisible, navigate]) // Запускаем эффект, когда isVisible или navigate меняются
+	}, [isVisible, navigate, setWinner])
 
 	const winGradient = 'from-green-400 via-yellow-300 to-green-500'
 	const loseGradient = 'from-red-500 via-purple-600 to-red-600'
@@ -97,7 +98,7 @@ export function EndGameModal() {
 						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
 					)}
 				/>
-				{/* Основной контейнер с текстом и таймером */}
+
 				<div className='flex flex-col items-center justify-center gap-8'>
 					<p
 						className={clsx(
@@ -113,7 +114,6 @@ export function EndGameModal() {
 							: 'Вы победили!\nПоздравляем!'}
 					</p>
 
-					{/* 👇 5. ДОБАВЛЕН ТАЙМЕР 👇 */}
 					<p className='text-xl text-gray-400'>
 						Возврат в главное меню через: {countdown}
 					</p>
