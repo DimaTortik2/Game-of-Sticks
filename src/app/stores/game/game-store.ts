@@ -58,14 +58,14 @@ export const tableAtom = atom({
 	take: 1,
 })
 
-const winnerAtom = atom<'player' | 'enemy' | undefined>(
-	getWinnerFromCookies() as 'player' | 'enemy' | undefined
+const winnerAtom = atom<'player' | 'enemy' | null>(
+	getWinnerFromCookies() as 'player' | 'enemy' | null
 )
 
 export const winnerAtomCookieAtom = atom(
 	get => get(winnerAtom),
 
-	(_, set, newSWinner: 'player' | 'enemy' | undefined) => {
+	(_, set, newSWinner: 'player' | 'enemy' | null) => {
 		setWinnerToCookies(newSWinner)
 		set(winnerAtom, newSWinner)
 	}

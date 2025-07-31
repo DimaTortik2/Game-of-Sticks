@@ -26,10 +26,27 @@ import {
 	move_3_4,
 	move_5,
 } from '../../../features/game/field'
-import { EndGameModal } from '../../../features/game/table/ui/EndGameModal'
+import { EndGameModal } from '../../../features/game/table/ui/end-game-modal'
 import { getGameModeDataFromCookies } from '../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
+import { toast } from 'react-toastify'
+import { NotValidToast } from '../../../features/game/table/ui/not-valid-toast'
+import { GameParams } from '../../../widgets/game/ui/game-params'
 
 export function Enviroment() {
+	const handleNottValid = () => {
+		toast(<NotValidToast />, {
+			containerId: 'gameTable',
+			position: 'bottom-right',
+			autoClose: 10000,
+			hideProgressBar: false,
+			closeOnClick: true,
+			closeButton: false,
+			className: 'full-width-toast z-20',
+			progressClassName: 'red-progress-bar',
+			toastId: 'notValidID',
+		})
+	}
+
 	const gameParams = useAtomValue(gameParamsCookieAtom)
 	const {
 		isEnemyStep,
@@ -49,12 +66,12 @@ export function Enviroment() {
 	const [isHelping, setIsHelping] = useState(false)
 
 	const setWinner = useSetAtom(winnerAtomCookieAtom)
+	const { modeNum } = getGameModeDataFromCookies()
 
 	const calculateAiMove = (
 		currentSticks: IStick[],
 		currentParams: typeof gameParams
 	): IStick[] | null => {
-		const { modeNum } = getGameModeDataFromCookies()
 		const currentCoded = codeSticksData(currentSticks)
 		let aiMoveFunction: ((pos: number[]) => number[]) | null = null
 
@@ -245,6 +262,7 @@ export function Enviroment() {
 
 		if (!isMoveValid) {
 			console.log('Ход невалидный.')
+			handleNottValid()
 			return
 		}
 
@@ -316,6 +334,12 @@ export function Enviroment() {
 	return (
 		<>
 			<EndGameModal />
+
+			<GameParams
+				gameParams={gameParams}
+				modeNum={modeNum}
+				className='absolute top-[20px] right-[20px] z-20'
+			/>
 
 			<ToastContainer
 				containerId={'gameTable'}

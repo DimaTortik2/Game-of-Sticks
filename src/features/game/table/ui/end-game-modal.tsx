@@ -1,4 +1,3 @@
-
 import clsx from 'clsx'
 import { BasicModal } from '../../../../shared/ui/modal/basic-modal'
 import { useState, useEffect } from 'react' // 1. Импортируем хуки
@@ -10,13 +9,13 @@ export function EndGameModal() {
 	const navigate = useNavigate() // 3. Инициализируем хук навигации
 	const [countdown, setCountdown] = useState(3) // 4. Состояние для таймера
 
-	const winner = useAtomValue<'player' | 'enemy' | undefined>(
-		winnerAtomCookieAtom
-	)
+	const winner = useAtomValue<'player' | 'enemy' | null>(winnerAtomCookieAtom)
 
 	const setWinner = useSetAtom(winnerAtomCookieAtom)
 
-	const isVisible = winner !== undefined
+	console.log({ winner })
+
+	const isVisible = winner !== null
 	const isEnemyWin = winner === 'enemy'
 
 	useEffect(() => {
@@ -32,8 +31,11 @@ export function EndGameModal() {
 
 			// Устанавливаем тайм-аут для редиректа через 3 секунды
 			const timeoutId = setTimeout(() => {
-				navigate('/')
-				setWinner(undefined)
+				setWinner(null)
+				setTimeout(() => {
+					console.log('Переход на главную страницу...')
+					navigate('/')
+				}, 100)
 			}, 3000)
 
 			// ✅ ВАЖНО: Функция очистки.

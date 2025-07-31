@@ -82,3 +82,8 @@
   background-size: 200% auto;
   animation: gradient-animation 3s ease-in-out infinite;
 }
+
+/* progress bars to toasts */
+.red-progress-bar {
+  background: #E53E3E !important; /* Насыщенный красный цвет */
+}

@@ -1,13 +1,13 @@
 import { GAME_MODES } from '../model/consts'
 import { GameModeLink } from '../ui/game-mode-link'
-import { setGameModeDataToCookies } from '../../../app/stores/game/cookies/game-mode/set-game-mode-data-to-cookies'
+
 import { BottomBtns } from '../../../features/bottom-btns'
 import { ShinyTitle } from '../ui/shiny-ttitle'
 import { MainPageBackground } from '../../../shared/ui/bg/main-page-background'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
+import { setGameModeDataToCookies } from '../../../app/stores/game/cookies/game-mode/set-game-mode-data-to-cookies'
 
 export const MainMenuPage = () => {
-	
 	return (
 		<div className='relative h-screen w-full bg-[#212121] flex items-center justify-center overflow-hidden font-sans'>
 			<MainPageBackground />

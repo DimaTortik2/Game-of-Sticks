@@ -6,5 +6,5 @@ export function mode_1_2_check(
 ) {
 	console.log({ positionBefore, positionAfter, min, max })
 
-	return true
+	return false
 }

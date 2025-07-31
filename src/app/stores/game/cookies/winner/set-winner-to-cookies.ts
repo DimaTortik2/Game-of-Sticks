@@ -1,9 +1,11 @@
 import Cookies from 'js-cookie'
 
-export function setWinnerToCookies(
-	winner: 'player' | 'enemy' | undefined
-) {
-	winner
-		? Cookies.set('winner', winner)
-		: console.log('Не получилось записать winner в куки')
+export function setWinnerToCookies(winner: 'player' | 'enemy' | null) {
+	if (winner) {
+		// Если победитель есть ('player' или 'enemy'), устанавливаем куку.
+		Cookies.set('winner', winner)
+	} else {
+		// Если победитель `null`, это сигнал к удалению куки.
+		Cookies.remove('winner')
+	}
 }
