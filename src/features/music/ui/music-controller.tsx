@@ -1,82 +1,81 @@
-import { useEffect, useRef, useState } from 'react' // 1. Добавляем useState
+import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { useAtomValue } from 'jotai'
 import { isMusicPlayingAtom } from '../../../app/stores/game/game-store'
 
-// Карта музыки остается без изменений
 const musicMap: Record<string, string> = {
 	'/': '/music/menu-music.mp3',
-	'/presettings': '/music/menu-music.mp3', // Предполагаю, что у вас есть такая страница
-	'/preset': '/music/menu-music.mp3', // И такая
+	'/presettings': '/music/menu-music.mp3',
+	'/preset': '/music/menu-music.mp3',
 	'/game': '/music/game-music.mp3',
 }
+
+// ==================================================================
+// 1. ✅ ГЛАВНОЕ ИЗМЕНЕНИЕ: Создаем плеер ОДИН РАЗ вне компонента.
+// Теперь это настоящий синглтон - он один на все приложение.
+// ==================================================================
+const audioPlayer = new Audio()
+audioPlayer.loop = true
+audioPlayer.volume = 0.5
 
 export function MusicController() {
 	const location = useLocation()
 	const isPlaying = useAtomValue(isMusicPlayingAtom)
-
-	// ✅ 2. Новое состояние для "разблокировки" аудио
-	// `isUnlocked` означает, что пользователь уже кликнул по странице хотя бы раз.
 	const [isUnlocked, setIsUnlocked] = useState(false)
+	// ❌ audioRef больше не нужен
 
-	const audioRef = useRef<HTMLAudioElement | null>(null)
-
-	// Этот useEffect следит за изменением трека и состояния воспроизведения
 	useEffect(() => {
 		const activeTrack = musicMap[location.pathname] || null
 
-		if (!audioRef.current) {
-			audioRef.current = new Audio()
-			audioRef.current.loop = true
-			// Устанавливаем громкость чуть ниже, чтобы не было слишком громко
-			audioRef.current.volume = 0.5
-		}
+		// 2. ✅ Удаляем инициализацию плеера из useEffect.
+		// const audio = audioRef.current; // Заменяем на:
+		const audio = audioPlayer // 3. ✅ Используем глобальный `audioPlayer`
 
-		const audio = audioRef.current
-
-		// Смена трека, если URL изменился
 		const newSrc = activeTrack ? window.location.origin + activeTrack : ''
-		if (activeTrack && audio.src !== newSrc) {
+
+		// Логика смены трека
+		if (audio.src !== newSrc) {
 			console.log(`Смена трека на: ${activeTrack}`)
-			audio.src = activeTrack
-		} else if (!activeTrack) {
-			// Если для страницы нет музыки, останавливаем и очищаем
 			audio.pause()
-			audio.src = ''
-		}
+			audio.src = activeTrack || ''
 
-		// Управляем воспроизведением, но ТОЛЬКО ЕСЛИ аудио уже "разблокировано"
-		if (isPlaying && activeTrack && isUnlocked) {
-			audio.play().catch(e => console.error('Ошибка воспроизведения:', e))
-		} else {
-			audio.pause()
+			if (isPlaying && activeTrack && isUnlocked) {
+				audio
+					.play()
+					.catch(e => console.error('Ошибка воспроизведения нового трека:', e))
+			}
 		}
-	}, [location, isPlaying, isUnlocked]) // Добавляем isUnlocked в зависимости
+		// Логика паузы/воспроизведения
+		else {
+			if (isPlaying && activeTrack && isUnlocked) {
+				if (audio.paused) {
+					audio
+						.play()
+						.catch(e => console.error('Ошибка возобновления трека:', e))
+				}
+			} else {
+				audio.pause()
+			}
+		}
+	}, [location, isPlaying, isUnlocked])
 
-	// ✅ 3. Новый эффект, который "слушает" первый клик
+	// Эффект для разблокировки аудио
 	useEffect(() => {
 		const unlockAudio = () => {
 			if (!isUnlocked) {
 				console.log('Аудио контекст разблокирован первым кликом!')
-				// Пытаемся запустить и сразу остановить "пустой" звук.
-				// Это "пробуждает" аудио-контекст браузера.
-				audioRef.current?.play().catch(() => {})
-				audioRef.current?.pause()
-
+				// Используем глобальный плеер для "пробуждения"
+				audioPlayer.play().catch(() => {})
+				audioPlayer.pause()
 				setIsUnlocked(true)
-				// Удаляем обработчик после первого успешного клика
 				window.removeEventListener('click', unlockAudio)
 			}
 		}
-
-		// Добавляем обработчик клика на все окно
 		window.addEventListener('click', unlockAudio)
-
-		// Функция очистки, чтобы удалить обработчик при размонтировании компонента
 		return () => {
 			window.removeEventListener('click', unlockAudio)
 		}
-	}, [isUnlocked]) // Зависимость от isUnlocked, чтобы удалить обработчик
+	}, [isUnlocked])
 
 	return null
 }

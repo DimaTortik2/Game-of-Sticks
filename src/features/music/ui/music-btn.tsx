@@ -5,7 +5,13 @@ import { isMusicPlayingAtom } from '../../../app/stores/game/game-store'
 import clsx from 'clsx'
 import Tooltip from '@mui/material/Tooltip'
 
-export function MusicButton({ className, isSmall }: { className?: string; isSmall?: boolean }) {
+export function MusicButton({
+	className,
+	isSmall,
+}: {
+	className?: string
+	isSmall?: boolean
+}) {
 	const [isPlaying, setIsPlaying] = useAtom(isMusicPlayingAtom)
 
 	const toggleMusic = () => {
@@ -19,7 +25,10 @@ export function MusicButton({ className, isSmall }: { className?: string; isSmal
 				tooltip: {
 					sx: {
 						fontSize: '1rem',
-            backgroundColor: '#212121'
+						backgroundColor: '#e8e8e8',
+						color: '#212121',
+						borderRadius: '10px',
+						padding: 1.5,
 					},
 				},
 			}}

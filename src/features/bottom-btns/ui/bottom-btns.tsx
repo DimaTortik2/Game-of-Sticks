@@ -3,6 +3,7 @@ import Cookies from 'js-cookie'
 import { useEffect, useState } from 'react'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { MusicButton } from '../../music'
+import Tooltip from '@mui/material/Tooltip'
 
 export function BottomBtns() {
 	useEffect(() => {
@@ -63,39 +64,69 @@ export function BottomBtns() {
 			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] px-5 py-3 rounded-2xl text-[#e8e8e8]'>
 				<MusicButton className='mx-2 w-4 h-4 z-[20]' isSmall={true} />
 
-				<div className='flex gap-5'>
-					<p>Отключить всплывающие подсказки</p>
-					<Checkbox
-						checked={isClueChecked}
-						onChange={handleClueClick}
-						sx={{
-							height: '24px',
-							width: '24px',
-							color: '#aaa', // цвет, когда НЕ выбран
-							'&.Mui-checked': {
-								color: '#e8e8e8', // цвет, когда выбран
+				<Tooltip
+					title={'Встретятся на других страницах в нижнем правом углу'}
+					componentsProps={{
+						tooltip: {
+							sx: {
+								fontSize: '1rem',
+								backgroundColor: '#e8e8e8',
+								color: '#212121',
+								borderRadius: '10px',
+								padding: 1.5,
 							},
-						}}
-						className='transition-transform transform hover:scale-110'
-					/>
-				</div>
+						},
+					}}
+				>
+					<div className='flex gap-5'>
+						<p>Отключить всплывающие подсказки</p>
+						<Checkbox
+							checked={isClueChecked}
+							onChange={handleClueClick}
+							sx={{
+								height: '24px',
+								width: '24px',
+								color: '#aaa', // цвет, когда НЕ выбран
+								'&.Mui-checked': {
+									color: '#e8e8e8', // цвет, когда выбран
+								},
+							}}
+							className='transition-transform transform hover:scale-110'
+						/>
+					</div>
+				</Tooltip>
 
-				<div className='flex gap-5'>
-					<p>Режим разработчика</p>
-					<Checkbox
-						checked={isDevChecked}
-						onChange={handleDevClick}
-						sx={{
-							height: '24px',
-							width: '24px',
-							color: '#aaa', // цвет, когда НЕ выбран
-							'&.Mui-checked': {
-								color: '#e8e8e8', // цвет, когда выбран
+				<Tooltip
+					title={'Будут видны группы цветов палочек'}
+					componentsProps={{
+						tooltip: {
+							sx: {
+								fontSize: '1rem',
+								backgroundColor: '#e8e8e8',
+								color: '#212121',
+								borderRadius: '10px',
+								padding: 1.5,
 							},
-						}}
-						className='transition-transform transform hover:scale-110'
-					/>
-				</div>
+						},
+					}}
+				>
+					<div className='flex gap-5 h-full items-center'>
+						<p>Режим разработчика</p>
+						<Checkbox
+							checked={isDevChecked}
+							onChange={handleDevClick}
+							sx={{
+								height: '24px',
+								width: '24px',
+								color: '#aaa', // цвет, когда НЕ выбран
+								'&.Mui-checked': {
+									color: '#e8e8e8', // цвет, когда выбран
+								},
+							}}
+							className='transition-transform transform hover:scale-110'
+						/>
+					</div>
+				</Tooltip>
 			</div>
 		</div>
 	)
