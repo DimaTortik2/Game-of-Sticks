@@ -24,38 +24,52 @@ export function BottomBtns() {
 	}
 
 	return (
-		<div className='absolute bottom-[20px] left-[20px] z-[1000] flex gap-3 items-center'>
-			<div
-				className='rounded-full bg-[#3e3e3e] h-10 w-10 text-[#e8e8e8] flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform'
-				onClick={() => {
-					setIsArrowClicked(prev => !prev)
-
-					const scrollContainer = document.getElementById(
-						'main-scroll-container'
-					)
-
-					if (scrollContainer) {
-						scrollContainer.scrollTo({
-							top: isArrowClicked ? 0 : scrollContainer.scrollHeight,
-							behavior: 'smooth',
-						})
-					} else {
-						console.warn('Не найден контейнер с id="main-scroll-container".')
-					}
+		<div className='absolute bottom-[20px] left-[20px] z-[1000] flex gap-1 items-center'>
+			<Tooltip
+				title={isArrowClicked ? 'Вверх' : ' Вниз'}
+				componentsProps={{
+					tooltip: {
+						sx: {
+							fontSize: '1rem',
+							backgroundColor: '#e8e8e8',
+							color: '#212121',
+							borderRadius: '10px',
+							padding: 1.5,
+						},
+					},
 				}}
 			>
-				<KeyboardArrowDownIcon
-					sx={{ fontSize: 30 }}
-					className={clsx(
-						'transition-transform',
-						isArrowClicked && 'transform rotate-180'
-					)}
-				/>
-			</div>
+				<div
+					className='rounded-full bg-[#3e3e3e] h-10 w-10 text-[#e8e8e8] flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform p-7'
+					onClick={() => {
+						setIsArrowClicked(prev => !prev)
 
-			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] px-5 py-3 rounded-2xl text-[#e8e8e8]'>
-				<MusicButton className='mx-2 w-4 h-4 z-[20]' isSmall={true} />
+						const scrollContainer = document.getElementById(
+							'main-scroll-container'
+						)
 
+						if (scrollContainer) {
+							scrollContainer.scrollTo({
+								top: isArrowClicked ? 0 : scrollContainer.scrollHeight,
+								behavior: 'smooth',
+							})
+						} else {
+							console.warn('Не найден контейнер с id="main-scroll-container".')
+						}
+					}}
+				>
+					<KeyboardArrowDownIcon
+						sx={{ fontSize: 40 }}
+						className={clsx(
+							'transition-transform ',
+							isArrowClicked && 'transform rotate-180'
+						)}
+					/>
+				</div>
+			</Tooltip>
+			<MusicButton className='mx-2 w-4 h-4 p-7 z-[20]' isSmall={true} />
+
+			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
 				<Tooltip
 					title={'Режим с подсветкой палочек (для избранных)'}
 					componentsProps={{
