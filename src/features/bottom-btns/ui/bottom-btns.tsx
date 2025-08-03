@@ -4,8 +4,11 @@ import { useEffect, useState } from 'react'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import { MusicButton } from '../../music'
 import Tooltip from '@mui/material/Tooltip'
+import clsx from 'clsx'
 
 export function BottomBtns() {
+	const [isArrowClicked, setIsArrowClicked] = useState(false)
+
 	useEffect(() => {
 		if (Cookies.get('devMode') === undefined) {
 			Cookies.set('devMode', 'true')
@@ -45,13 +48,15 @@ export function BottomBtns() {
 			<div
 				className='rounded-full bg-[#3e3e3e] h-10 w-10 text-[#e8e8e8] flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform'
 				onClick={() => {
+					setIsArrowClicked(prev => !prev)
+
 					const scrollContainer = document.getElementById(
 						'main-scroll-container'
 					)
 
 					if (scrollContainer) {
 						scrollContainer.scrollTo({
-							top: scrollContainer.scrollHeight,
+							top: isArrowClicked ? 0 : scrollContainer.scrollHeight,
 							behavior: 'smooth',
 						})
 					} else {
@@ -59,8 +64,15 @@ export function BottomBtns() {
 					}
 				}}
 			>
-				<KeyboardArrowDownIcon sx={{ fontSize: 30 }} />
+				<KeyboardArrowDownIcon
+					sx={{ fontSize: 30 }}
+					className={clsx(
+						'transition-transform',
+						isArrowClicked && 'transform rotate-180'
+					)}
+				/>
 			</div>
+
 			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] px-5 py-3 rounded-2xl text-[#e8e8e8]'>
 				<MusicButton className='mx-2 w-4 h-4 z-[20]' isSmall={true} />
 

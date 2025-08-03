@@ -14,7 +14,7 @@ export const MainMenuPage = () => {
 
 			<div
 				id='main-scroll-container'
-				className='relative z-10 w-screen h-screen overflow-y-auto overflow-x-hidden thin-scrollbar '
+				className='relative z-10 w-screen h-screen overflow-y-auto overflow-x-hidden hidden-scrollbar '
 			>
 				<main className=' h-full p-8 flex justify-center gap-16'>
 					<div className='flex flex-col gap-6 w-full'>
