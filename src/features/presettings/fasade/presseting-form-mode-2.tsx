@@ -6,7 +6,6 @@ import type {
 	ISliderState,
 } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
-import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
 import { randomize } from '../model/helpers/randomize'
 import { randomizeRange } from '../model/helpers/randomize-range'
@@ -113,7 +112,6 @@ export function PressetingFormMode2() {
 				}}
 				isActive={isFirstComputerStep}
 			/>
-			<Clue />
 
 			<PlayButton onClick={handlePlayClick} />
 		</div>

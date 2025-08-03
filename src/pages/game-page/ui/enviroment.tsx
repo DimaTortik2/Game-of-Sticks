@@ -1,7 +1,6 @@
 import { GamePageBackground } from '../../../shared/ui/bg/game-page-background'
 import { ExitLinkButton } from '../../../shared/ui/btns-or-links/exit-link-button'
 import { GameState } from '../../../widgets/game'
-import { Clue } from '../../../shared/ui/alerts/clue'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
 import { useAtom, useAtomValue, useSetAtom } from 'jotai'
 import { useEffect } from 'react'
@@ -368,7 +367,6 @@ export function Enviroment() {
 				selectedCount={selectedSticksCount}
 				isHelping={isHelping}
 			/>
-			<Clue className='z-20' />
 
 			<Btn
 				className={clsx(

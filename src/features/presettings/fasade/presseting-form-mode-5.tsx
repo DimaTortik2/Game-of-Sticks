@@ -3,7 +3,6 @@ import { PresettingSlider } from '../ui/presetting-slider'
 import { PresettingItem } from '../ui/presseting-item'
 import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
-import { Clue } from '../../../shared/ui/alerts/clue'
 import { PlayButton } from '../ui/play-button'
 import { randomize } from '../model/helpers/randomize'
 import { makeSticksStartArr } from '../../../entities/sticks'
@@ -82,7 +81,6 @@ export function PressetingFormMode5() {
 				}}
 				isActive={isFirstComputerStep}
 			/>
-			<Clue />
 
 			<PlayButton onClick={handlePlayClick} />
 		</div>

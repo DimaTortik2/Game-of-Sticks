@@ -4,7 +4,6 @@ import { PresettingItem } from '../ui/presseting-item'
 import type { ISliderState } from '../model/interfaces/sliders.interface'
 import { makeHandleSliderChange } from '../model/helpers/make-handle-slider-change'
 import { PlayButton } from '../ui/play-button'
-import { Clue } from '../../../shared/ui/alerts/clue'
 import { randomize } from '../model/helpers/randomize'
 import { makeSticksStartArr } from '../../../entities/sticks'
 import { useSetAtom } from 'jotai'
@@ -107,7 +106,6 @@ export function PressetingFormMode1() {
 				}}
 				isActive={isFirstComputerStep}
 			/>
-			<Clue />
 
 			<PlayButton onClick={handlePlayClick} />
 		</div>
