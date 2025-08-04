@@ -2,10 +2,10 @@ import { GamePageBackground } from '../../../shared/ui/bg/game-page-background'
 import { ExitLinkButton } from '../../../shared/ui/btns-or-links/exit-link-button'
 import { GameState } from '../../../widgets/game'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
-import { useAtom, useAtomValue, useSetAtom } from 'jotai'
+import { useAtom, useSetAtom } from 'jotai'
 import { useEffect } from 'react'
 import clsx from 'clsx'
-import { ToastContainer } from 'react-toastify'
+import { ToastContainer, toast } from 'react-toastify'
 import { GameTools } from '../../../features/game/table'
 import {
 	gameParamsCookieAtom,
@@ -27,9 +27,47 @@ import {
 } from '../../../features/game/field'
 import { EndGameModal } from '../../../features/game/table/ui/end-game-modal'
 import { getGameModeDataFromCookies } from '../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
-import { toast } from 'react-toastify'
 import { NotValidToast } from '../../../features/game/table/ui/not-valid-toast'
 import { GameParams } from '../../../widgets/game/ui/game-params'
+
+/**
+ * Ключевая функция. После каждого хода она анализирует оставшиеся палочки
+ * и переназначает им groupId, чтобы они всегда шли по порядку (0, 1, 2...).
+ */
+const normalizeGroupIdsAfterTurn = (sticks: IStick[]): IStick[] => {
+	// 1. Находим только те палочки, что еще в игре, и сортируем их по ID
+	const availableSticks = sticks
+		.filter(s => !s.isTaken)
+		.sort((a, b) => a.id - b.id)
+
+	if (availableSticks.length === 0) {
+		return sticks // Если палочек не осталось, ничего не делаем
+	}
+
+	// 2. Создаем карту для новых назначений: `Map<stickId, newGroupId>`
+	const newAssignments = new Map<number, number>()
+	let currentGroupId = 0
+	let lastStickId = -1 // Используем -1 для инициализации
+
+	for (const stick of availableSticks) {
+		// Если ID текущей палочки не следует сразу за предыдущей, это новая группа
+		if (lastStickId !== -1 && stick.id !== lastStickId + 1) {
+			currentGroupId++
+		}
+		newAssignments.set(stick.id, currentGroupId)
+		lastStickId = stick.id
+	}
+
+	// 3. Применяем новые groupId ко всему массиву палочек
+	return sticks.map(stick => {
+		if (newAssignments.has(stick.id)) {
+			// Если палочка доступна, обновляем ее groupId
+			return { ...stick, groupId: newAssignments.get(stick.id)! }
+		}
+		// Если палочка уже была взята, оставляем как есть
+		return stick
+	})
+}
 
 export function Enviroment() {
 	const handleNottValid = () => {
@@ -46,7 +84,7 @@ export function Enviroment() {
 		})
 	}
 
-	const gameParams = useAtomValue(gameParamsCookieAtom)
+	const [gameParams, setGameParams] = useAtom(gameParamsCookieAtom)
 	const {
 		isEnemyStep,
 		maxPerStep,
@@ -57,13 +95,9 @@ export function Enviroment() {
 		helpsCount,
 	} = gameParams
 
-	const setGameParams = useSetAtom(gameParamsCookieAtom)
 	const isDev = Cookies.get('devMode') === 'true'
-	const sticksArr = useAtomValue<IStick[] | undefined>(sticksArrCookieAtom)
-	const setSticksArr = useSetAtom(sticksArrCookieAtom)
-
+	const [sticksArr, setSticksArr] = useAtom(sticksArrCookieAtom)
 	const [isHelping, setIsHelping] = useAtom(isHelpingAtom)
-
 	const setWinner = useSetAtom(winnerAtomCookieAtom)
 	const { modeNum } = getGameModeDataFromCookies()
 
@@ -163,11 +197,13 @@ export function Enviroment() {
 				return
 			}
 
-			const afterHelpMove = sticksWithHelpSelection.map(stick =>
+			let afterHelpMove = sticksWithHelpSelection.map(stick =>
 				stick.isSelected
 					? { ...stick, isSelected: false, isTaken: true }
 					: stick
 			)
+			afterHelpMove = normalizeGroupIdsAfterTurn(afterHelpMove)
+
 			const remainingAfterHelp = afterHelpMove.filter(s => !s.isTaken).length
 
 			if (remainingAfterHelp === 0) {
@@ -198,11 +234,13 @@ export function Enviroment() {
 					return
 				}
 
-				const afterAiMove = sticksWithAiSelection.map(stick =>
+				let afterAiMove = sticksWithAiSelection.map(stick =>
 					stick.isSelected
 						? { ...stick, isSelected: false, isTaken: true }
 						: stick
 				)
+				afterAiMove = normalizeGroupIdsAfterTurn(afterAiMove)
+
 				const remainingAfterAI = afterAiMove.filter(s => !s.isTaken).length
 
 				if (remainingAfterAI === 0) {
@@ -229,15 +267,13 @@ export function Enviroment() {
 
 		const sticksBeforePlayerMove = sticksArr.filter(s => !s.isTaken)
 		const tempAfterPlayerMove = sticksArr.map(stick =>
-			stick.isSelected ? { ...stick, isSelected: false, isTaken: true } : stick
+			stick.isSelected ? { ...stick, isTaken: true } : stick
 		)
-		const sticksAfterPlayerMove = tempAfterPlayerMove.filter(s => !s.isTaken)
 
 		const nowCoded = codeSticksData(sticksBeforePlayerMove)
-		const afterCoded = codeSticksData(sticksAfterPlayerMove)
+		const afterCoded = codeSticksData(tempAfterPlayerMove)
 
 		let isMoveValid = false
-
 		switch (modeNum) {
 			case 1:
 				if (maxPerStep)
@@ -281,41 +317,51 @@ export function Enviroment() {
 		if (!isMoveValid) {
 			console.log('Ход невалидный.')
 			handleNottValid()
+			setSticksArr(sticksArr.map(s => ({ ...s, isSelected: false })))
 			return
 		}
 
-		if (sticksAfterPlayerMove.length === 0) {
-			setSticksArr(tempAfterPlayerMove)
-			setWinner('player') // Игрок взял последние палочки и проиграл
+		let afterPlayerMove = sticksArr.map(stick =>
+			stick.isSelected
+				? { ...stick, isTaken: true, isSelected: false }
+				: { ...stick, isSelected: false }
+		)
+
+		afterPlayerMove = normalizeGroupIdsAfterTurn(afterPlayerMove)
+
+		const remainingAfterPlayer = afterPlayerMove.filter(s => !s.isTaken).length
+		if (remainingAfterPlayer === 0) {
+			setSticksArr(afterPlayerMove)
+			setWinner('player')
 			return
 		}
 
-		setSticksArr(tempAfterPlayerMove)
+		setSticksArr(afterPlayerMove)
 		const newParams = {
 			...gameParams,
-			sticksCount: sticksAfterPlayerMove.length,
+			sticksCount: remainingAfterPlayer,
 			isEnemyStep: true,
 		}
 		setGameParams(newParams)
 
 		setTimeout(() => {
-			const sticksWithAiSelection = calculateAiMove(
-				tempAfterPlayerMove,
-				newParams
-			)
+			const sticksWithAiSelection = calculateAiMove(afterPlayerMove, newParams)
 			if (sticksWithAiSelection) {
-				const afterAiMove = sticksWithAiSelection.map(stick =>
+				let afterAiMove = sticksWithAiSelection.map(stick =>
 					stick.isSelected
 						? { ...stick, isSelected: false, isTaken: true }
 						: stick
 				)
+
+				afterAiMove = normalizeGroupIdsAfterTurn(afterAiMove)
+
 				const remainingSticksAfterAI = afterAiMove.filter(
 					s => !s.isTaken
 				).length
 
 				if (remainingSticksAfterAI === 0) {
 					setSticksArr(afterAiMove)
-					setWinner('enemy') // ИИ взял последние палочки и проиграл
+					setWinner('enemy')
 					return
 				}
 
@@ -334,40 +380,44 @@ export function Enviroment() {
 	useEffect(() => {
 		if (sticksArr && sticksArr.length > 0 && isFirstComputerStep) {
 			console.log('Первый ход компьютера...')
-			setGameParams({ ...gameParams, isEnemyStep: true })
+			const initialParams = {
+				...gameParams,
+				isEnemyStep: true,
+				isFirstComputerStep: false,
+			}
+			setGameParams(initialParams)
 
 			setTimeout(() => {
-				const sticksWithAiSelection = calculateAiMove(sticksArr, gameParams)
+				const sticksWithAiSelection = calculateAiMove(sticksArr, initialParams)
 				if (sticksWithAiSelection) {
-					const afterAiMove = sticksWithAiSelection.map(stick =>
+					let afterAiMove = sticksWithAiSelection.map(stick =>
 						stick.isSelected
 							? { ...stick, isSelected: false, isTaken: true }
 							: stick
 					)
-					const remainingCount = afterAiMove.filter(s => !s.isTaken).length
 
+					afterAiMove = normalizeGroupIdsAfterTurn(afterAiMove)
+
+					const remainingCount = afterAiMove.filter(s => !s.isTaken).length
 					if (remainingCount === 0) {
 						setSticksArr(afterAiMove)
-						setWinner('player')
+						setWinner('enemy')
 						return
 					}
 
 					setSticksArr(afterAiMove)
 					setGameParams({
-						...gameParams,
+						...initialParams,
 						sticksCount: remainingCount,
-						isFirstComputerStep: false,
 						isEnemyStep: false,
 					})
 				}
 			}, 1000)
 		}
-	}, [isFirstComputerStep, sticksArr])
+	}, [isFirstComputerStep, sticksArr?.length])
 
-	const selectedSticksArr = sticksArr?.filter(
-		stick => stick.isSelected && !stick.isTaken
-	)
-	const selectedSticksCount = selectedSticksArr?.length || 0
+	const selectedSticksCount =
+		sticksArr?.filter(stick => stick.isSelected && !stick.isTaken).length || 0
 
 	return (
 		<>
