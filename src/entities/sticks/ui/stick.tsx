@@ -23,8 +23,11 @@ export const Stick = forwardRef<HTMLDivElement, StickProps>(
 				ref={ref}
 				onClick={onClick}
 				className={clsx(
-					'w-[15px] h-[60%] rounded-full transition-all duration-100 cursor-pointer pointer-events-auto',
-					isSelected && 'transform scale-105'
+					'w-[15px] h-[60%] rounded-full transition-all duration-100 ',
+					isSelected && 'transform scale-105',
+					isInvisible
+						? 'pointer-events-none cursor-auto'
+						: 'cursor-pointer pointer-events-auto'
 				)}
 				style={{ backgroundColor }}
 			></div>
