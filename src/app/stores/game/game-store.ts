@@ -6,7 +6,6 @@ import { PREDEFINED_COLORS } from '../../consts/colors'
 import type { IGameParams } from '../interfaces/game-params.interface'
 import { getGameParamsFromCookies } from './cookies/game-params/get-game-params-from-cookies'
 import { setGameParamsToCookies } from './cookies/game-params/set-game-params-to-cookies'
-import { addSeparatorsToSticks } from '../../../features/game/field/model/helpers/add-separation-sticks'
 import { getWinnerFromCookies } from './cookies/winner/get-winner-from-cookies'
 import { setWinnerToCookies } from './cookies/winner/set-winner-to-cookies'
 
@@ -28,19 +27,10 @@ const gameParamsAtom = atom<IGameParams>(
 )
 
 export const sticksWithSeparatorsCountAtom = atom<number>(get => {
-	// а) Получаем текущий массив реальных палочек
-	const realSticks = get(sticksArrCookieAtom)
-
-	// б) Если палочек нет, возвращаем 0
-	if (!realSticks) {
-		return 0
-	}
-
-	// в) Вызываем нашу чистую функцию для добавления разделителей
-	const sticksWithSeparators = addSeparatorsToSticks(realSticks)
-
-	// г) Возвращаем длину получившегося массива
-	return sticksWithSeparators.length
+	// Получаем текущий массив палочек
+	const sticks = get(sticksArrCookieAtom)
+	// Возвращаем его длину. Так как массив больше не уменьшается, это значение будет постоянным.
+	return sticks ? sticks.length : 0
 })
 
 export const gameParamsCookieAtom = atom(
@@ -73,7 +63,6 @@ export const winnerAtomCookieAtom = atom(
 
 export const isHelpingAtom = atom(false)
 export const isEnemyStep = atom(false)
-
 
 export const isMusicPlayingAtom = atom(false)
 export const activeMusicTrackAtom = atom<string | null>(null)

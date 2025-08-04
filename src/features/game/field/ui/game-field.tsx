@@ -7,10 +7,7 @@ import { useAtom } from 'jotai'
 import { sticksArrCookieAtom } from '../../../../app/stores/game/game-store'
 import Cookies from 'js-cookie'
 import { MouseFollowerAlert } from '../../../../shared/ui/alerts/mouse-follower-aalert'
-import {
-	addSeparatorsToSticks,
-	type RenderableStick,
-} from '../model/helpers/add-separation-sticks'
+import type { IStick } from '../../../../entities/sticks/model/interfaces/stick.interfaces'
 
 interface IProps {
 	className?: string
@@ -34,41 +31,37 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 	const { isDragging, selectionBoxCoords, eventHandlers, getItemProps } =
 		useSelection(containerRef, sticksArr, setSticksArr)
 
-	const sticksToRender = useMemo(
-		() => addSeparatorsToSticks(sticksArr),
+	const selectedCount = useMemo(
+		() => sticksArr.filter(stick => stick.isSelected && !stick.isTaken).length,
 		[sticksArr]
 	)
 
-	const selectedCount = useMemo(
-		() => sticksArr.filter(stick => stick.isSelected).length,
-		[sticksArr]
-	)
+	const totalSticksCount = sticksArr.length
 
 	const gap =
-		sticksToRender.length > 1
+		totalSticksCount > 1
 			? `calc((100% - ${
-					sticksToRender.length > 25 ? 25 : sticksToRender.length
-			  } * 15px) / (${
-					(sticksToRender.length > 25 ? 25 : sticksToRender.length) - 1
-			  }))`
+					totalSticksCount > 25 ? 25 : totalSticksCount
+			  } * 15px) / (${(totalSticksCount > 25 ? 25 : totalSticksCount) - 1}))`
 			: undefined
 
-	const renderStick = (stick: RenderableStick) => {
-		const key = stick.isInvisible ? `sep-${stick.id}` : stick.id
+	const renderStick = (stick: IStick) => {
+		const key = stick.id
 
-		if (stick.isInvisible) {
+		// Если палочка "взята", рендерим ее как невидимый плейсхолдер без обработчиков событий
+		if (stick.isTaken) {
 			return (
 				<Stick
 					key={key}
 					isSelected={false}
 					groupId={-1}
 					isDev={isDev}
-					isInvisible={true}
-					onClick={() => {}}
+					isInvisible={true} // Используем существующий флаг для невидимости
 				/>
 			)
 		}
 
+		// Обычная, активная палочка
 		return (
 			<Stick
 				key={key}
@@ -104,8 +97,7 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 					)}
 					style={{ gap, justifyContent: 'start' }}
 				>
-					{/* ✅ Используем новую функцию для рендера */}
-					{sticksToRender.slice(0, 25).map(renderStick)}
+					{sticksArr.slice(0, 25).map(renderStick)}
 				</div>
 				{/* Второй блок палочек */}
 				{!isSticksLess && (
@@ -116,8 +108,7 @@ export function GameFiled({ className, isSticksLess }: IProps) {
 						)}
 						style={{ gap, justifyContent: 'start' }}
 					>
-						{/* ✅ И здесь тоже */}
-						{sticksToRender.slice(25, 50).map(renderStick)}
+						{sticksArr.slice(25, 50).map(renderStick)}
 					</div>
 				)}
 			</div>

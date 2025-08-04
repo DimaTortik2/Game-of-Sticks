@@ -34,13 +34,8 @@ export const useSelection = (
 		setEndPoint({ x: e.clientX, y: e.clientY })
 
 		if (!e.metaKey && !e.ctrlKey) {
-			// ✅ ИСПРАВЛЕННАЯ ЛОГИКА:
-			// 1. Сначала проверяем, есть ли вообще что сбрасывать.
 			const wasAnythingSelected = sticksArr.some(stick => stick.isSelected)
-
-			// 2. Если да, то создаем новый массив и обновляем состояние.
 			if (wasAnythingSelected) {
-				console.log('[useSelection] MouseDown: Сброс выделения')
 				const newSticks = sticksArr.map(stick => ({
 					...stick,
 					isSelected: false,
@@ -59,8 +54,6 @@ export const useSelection = (
 		if (!isDragging) return
 		setIsDragging(false)
 
-		console.log('[useSelection] MouseUp: Выделение рамкой')
-
 		const selectionBox = {
 			left: Math.min(startPoint.x, endPoint.x),
 			right: Math.max(startPoint.x, endPoint.x),
@@ -69,6 +62,8 @@ export const useSelection = (
 		}
 
 		const newSticks = sticksArr.map(stick => {
+			if (stick.isTaken) return stick // Игнорируем взятые палочки
+
 			const element = itemRefs.current.get(stick.id)
 			if (!element) return stick
 
@@ -90,13 +85,15 @@ export const useSelection = (
 
 	const handleItemClick = (id: string | number, e: MouseEvent) => {
 		e.stopPropagation()
-		console.log(`[useSelection] ItemClick: Клик по палочке с ID: ${id}`)
+		const targetStick = sticksArr.find(stick => stick.id === id)
+		if (!targetStick || targetStick.isTaken) return // Игнорируем клики по взятым палочкам
 
 		const newSticks = sticksArr.map(stick => {
 			if (stick.id === id) {
 				if (e.metaKey || e.ctrlKey) {
 					return { ...stick, isSelected: !stick.isSelected }
 				}
+				// Сбрасываем выделение с других, если не зажат Ctrl/Cmd
 				return { ...stick, isSelected: true }
 			}
 			if (!e.metaKey && !e.ctrlKey) {

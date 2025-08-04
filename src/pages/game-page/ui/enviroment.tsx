@@ -15,7 +15,6 @@ import {
 } from '../../../app/stores/game/game-store'
 import type { IStick } from '../../../entities/sticks/model/interfaces/stick.interfaces'
 import Cookies from 'js-cookie'
-import { myStep } from '../../../features/game/field/model/helpers/my-step'
 
 import { codeSticksData } from '../../../features/game/field/model/helpers/code/code-sticks-data'
 import {
@@ -72,7 +71,10 @@ export function Enviroment() {
 		currentSticks: IStick[],
 		currentParams: typeof gameParams
 	): IStick[] | null => {
-		const currentCoded = codeSticksData(currentSticks)
+		const availableSticks = currentSticks.filter(stick => !stick.isTaken)
+		if (availableSticks.length === 0) return currentSticks
+
+		const currentCoded = codeSticksData(availableSticks)
 		let aiMoveFunction: ((pos: number[]) => number[]) | null = null
 
 		switch (modeNum) {
@@ -118,21 +120,22 @@ export function Enviroment() {
 		const countAfterAI = aiFinalPositionCoded.reduce((a, b) => a + b, 0)
 		const sticksTakenByAI = countBeforeAI - countAfterAI
 
-		if (sticksTakenByAI < 0) {
-			console.error('Ошибка в логике ИИ: количество палочек увеличилось!')
-			return null
+		if (sticksTakenByAI <= 0) {
+			console.log('ИИ не сделал ход.')
+			return currentSticks.map(s => ({ ...s, isSelected: false }))
 		}
 
-		const tempArrayForRegrouping = currentSticks.map((stick, index) => ({
-			...stick,
-			isSelected: index >= currentSticks.length - sticksTakenByAI,
-		}))
+		const sticksToSelectIds = new Set(
+			availableSticks.slice(-sticksTakenByAI).map(s => s.id)
+		)
 
-		return myStep(tempArrayForRegrouping)
+		return currentSticks.map(stick => ({
+			...stick,
+			isSelected: sticksToSelectIds.has(stick.id),
+		}))
 	}
 
 	const handleHelpClick = () => {
-		// Блокируем, если ходит ИИ, нет подсказок или игра не началась
 		if (
 			!sticksArr ||
 			isEnemyStep ||
@@ -142,68 +145,76 @@ export function Enviroment() {
 		}
 
 		console.log('Игрок использует подсказку...')
-
-		// --- ЭТАП 0: Начало ---
-		setSticksArr(sticksArr.map(stick => ({ ...stick, isSelected: false }))) // снимаем выделение
+		setSticksArr(sticksArr.map(stick => ({ ...stick, isSelected: false })))
 		setIsHelping(true)
-		setGameParams({ ...gameParams, helpsCount: (helpsCount || 0) - 1 })
+		const newHelpsCount = (helpsCount || 0) - 1
+		setGameParams({ ...gameParams, helpsCount: newHelpsCount })
 
-		// --- ЭТАП 1: Ход-подсказка (через 1 секунду) ---
 		setTimeout(() => {
 			if (!sticksArr) return
 
-			const helpMoveResult = calculateAiMove(sticksArr, gameParams)
-			if (!helpMoveResult) {
+			const sticksWithHelpSelection = calculateAiMove(sticksArr, {
+				...gameParams,
+				helpsCount: newHelpsCount,
+			})
+			if (!sticksWithHelpSelection) {
 				setIsHelping(false)
-				setGameParams({
-					...gameParams,
-					helpsCount: (helpsCount || 0) - 1,
-					isEnemyStep: false,
-				})
+				setGameParams({ ...gameParams, helpsCount: newHelpsCount })
 				return
 			}
 
-			// ✅ ПРОВЕРКА ПОБЕДИТЕЛЯ №1: После хода-подсказки
-			if (helpMoveResult.length === 0) {
-				setSticksArr(helpMoveResult)
-				setWinner('player') // Игрок "сделал" ход и проиграл
+			const afterHelpMove = sticksWithHelpSelection.map(stick =>
+				stick.isSelected
+					? { ...stick, isSelected: false, isTaken: true }
+					: stick
+			)
+			const remainingAfterHelp = afterHelpMove.filter(s => !s.isTaken).length
+
+			if (remainingAfterHelp === 0) {
+				setSticksArr(afterHelpMove)
+				setWinner('player') // Игрок проиграл после подсказки
 				setIsHelping(false)
-				return // Прерываем цепочку, игра окончена
+				return
 			}
 
-			setSticksArr(helpMoveResult)
+			setSticksArr(afterHelpMove)
 			setIsHelping(false)
 			const paramsAfterHelp = {
 				...gameParams,
-				sticksCount: helpMoveResult.length,
-				helpsCount: (helpsCount || 0) - 1,
+				sticksCount: remainingAfterHelp,
+				helpsCount: newHelpsCount,
 				isEnemyStep: true,
 			}
 			setGameParams(paramsAfterHelp)
 			console.log('GameState: Ход переходит к врагу.')
 
-			// --- ЭТАП 2: Настоящий ход ИИ (еще через 1.5 секунды) ---
 			setTimeout(() => {
-				const realAiMoveResult = calculateAiMove(
-					helpMoveResult,
+				const sticksWithAiSelection = calculateAiMove(
+					afterHelpMove,
 					paramsAfterHelp
 				)
-				if (!realAiMoveResult) {
+				if (!sticksWithAiSelection) {
 					setGameParams({ ...paramsAfterHelp, isEnemyStep: false })
 					return
 				}
 
-				// ✅ ПРОВЕРКА ПОБЕДИТЕЛЯ №2: После ответного хода ИИ
-				if (realAiMoveResult.length === 0) {
-					setSticksArr(realAiMoveResult)
-					setWinner('enemy') // ИИ сделал ход и проиграл
-					return // Прерываем цепочку, игра окончена
+				const afterAiMove = sticksWithAiSelection.map(stick =>
+					stick.isSelected
+						? { ...stick, isSelected: false, isTaken: true }
+						: stick
+				)
+				const remainingAfterAI = afterAiMove.filter(s => !s.isTaken).length
+
+				if (remainingAfterAI === 0) {
+					setSticksArr(afterAiMove)
+					setWinner('enemy') // ИИ проиграл
+					return
 				}
 
-				setSticksArr(realAiMoveResult)
+				setSticksArr(afterAiMove)
 				setGameParams({
 					...paramsAfterHelp,
-					sticksCount: realAiMoveResult.length,
+					sticksCount: remainingAfterAI,
 					isEnemyStep: false,
 				})
 				console.log('GameState: Ход возвращается игроку.')
@@ -215,9 +226,16 @@ export function Enviroment() {
 		if (!sticksArr || isEnemyStep || selectedSticksCount === 0) return
 
 		const { modeNum } = getGameModeDataFromCookies()
-		const playerMoveResult = myStep(sticksArr)
-		const nowCoded = codeSticksData(sticksArr)
-		const afterCoded = codeSticksData(playerMoveResult)
+
+		const sticksBeforePlayerMove = sticksArr.filter(s => !s.isTaken)
+		const tempAfterPlayerMove = sticksArr.map(stick =>
+			stick.isSelected ? { ...stick, isSelected: false, isTaken: true } : stick
+		)
+		const sticksAfterPlayerMove = tempAfterPlayerMove.filter(s => !s.isTaken)
+
+		const nowCoded = codeSticksData(sticksBeforePlayerMove)
+		const afterCoded = codeSticksData(sticksAfterPlayerMove)
+
 		let isMoveValid = false
 
 		switch (modeNum) {
@@ -266,37 +284,49 @@ export function Enviroment() {
 			return
 		}
 
-		// Проверка на окончание игры ПОСЛЕ ХОДА ИГРОКА
-		if (playerMoveResult.length === 0) {
-			setSticksArr(playerMoveResult)
-			setWinner('player') // Игрок проиграл -> победил враг
+		if (sticksAfterPlayerMove.length === 0) {
+			setSticksArr(tempAfterPlayerMove)
+			setWinner('player') // Игрок взял последние палочки и проиграл
 			return
 		}
 
-		setSticksArr(playerMoveResult)
+		setSticksArr(tempAfterPlayerMove)
 		const newParams = {
 			...gameParams,
-			sticksCount: playerMoveResult.length,
+			sticksCount: sticksAfterPlayerMove.length,
 			isEnemyStep: true,
 		}
 		setGameParams(newParams)
 
 		setTimeout(() => {
-			const aiMoveResult = calculateAiMove(playerMoveResult, newParams)
-			if (aiMoveResult) {
-				// Проверка на окончание игры ПОСЛЕ ХОДА ИИ
-				if (aiMoveResult.length === 0) {
-					setSticksArr(aiMoveResult)
-					setWinner('enemy') // ИИ проиграл -> победил игрок
+			const sticksWithAiSelection = calculateAiMove(
+				tempAfterPlayerMove,
+				newParams
+			)
+			if (sticksWithAiSelection) {
+				const afterAiMove = sticksWithAiSelection.map(stick =>
+					stick.isSelected
+						? { ...stick, isSelected: false, isTaken: true }
+						: stick
+				)
+				const remainingSticksAfterAI = afterAiMove.filter(
+					s => !s.isTaken
+				).length
+
+				if (remainingSticksAfterAI === 0) {
+					setSticksArr(afterAiMove)
+					setWinner('enemy') // ИИ взял последние палочки и проиграл
 					return
 				}
 
-				setSticksArr(aiMoveResult)
+				setSticksArr(afterAiMove)
 				setGameParams({
 					...newParams,
-					sticksCount: aiMoveResult.length,
+					sticksCount: remainingSticksAfterAI,
 					isEnemyStep: false,
 				})
+			} else {
+				setGameParams({ ...newParams, isEnemyStep: false })
 			}
 		}, 1000)
 	}
@@ -307,19 +337,25 @@ export function Enviroment() {
 			setGameParams({ ...gameParams, isEnemyStep: true })
 
 			setTimeout(() => {
-				const aiMoveResult = calculateAiMove(sticksArr, gameParams)
-				if (aiMoveResult) {
-					if (aiMoveResult.length === 0) {
-						console.log('ИИ взял последнюю палочку. ИИ проиграл.')
-						setSticksArr(aiMoveResult)
+				const sticksWithAiSelection = calculateAiMove(sticksArr, gameParams)
+				if (sticksWithAiSelection) {
+					const afterAiMove = sticksWithAiSelection.map(stick =>
+						stick.isSelected
+							? { ...stick, isSelected: false, isTaken: true }
+							: stick
+					)
+					const remainingCount = afterAiMove.filter(s => !s.isTaken).length
+
+					if (remainingCount === 0) {
+						setSticksArr(afterAiMove)
 						setWinner('player')
 						return
 					}
 
-					setSticksArr(aiMoveResult)
+					setSticksArr(afterAiMove)
 					setGameParams({
 						...gameParams,
-						sticksCount: aiMoveResult.length,
+						sticksCount: remainingCount,
 						isFirstComputerStep: false,
 						isEnemyStep: false,
 					})
@@ -328,7 +364,9 @@ export function Enviroment() {
 		}
 	}, [isFirstComputerStep, sticksArr])
 
-	const selectedSticksArr = sticksArr?.filter(stick => stick.isSelected)
+	const selectedSticksArr = sticksArr?.filter(
+		stick => stick.isSelected && !stick.isTaken
+	)
 	const selectedSticksCount = selectedSticksArr?.length || 0
 
 	return (
@@ -350,10 +388,7 @@ export function Enviroment() {
 				draggable={false}
 			/>
 
-			<GameTools
-				isDev={isDev}
-				onHelpClick={handleHelpClick}
-			/>
+			<GameTools isDev={isDev} onHelpClick={handleHelpClick} />
 
 			<GamePageBackground />
 

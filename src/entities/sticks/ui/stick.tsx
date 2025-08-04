@@ -4,7 +4,7 @@ import { PREDEFINED_COLORS } from '../../../app/consts/colors'
 
 interface StickProps {
 	isSelected: boolean
-	onClick: (e: React.MouseEvent) => void
+	onClick?: (e: React.MouseEvent) => void
 	groupId: number
 	isDev: boolean
 	isInvisible: boolean
