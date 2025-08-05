@@ -1,4 +1,4 @@
-import { GAME_MODES } from '../model/consts'
+import { GAME_MODES } from '../../../app/consts/game-modes'
 import { GameModeLink } from '../ui/game-mode-link'
 
 import { BottomBtns } from '../../../features/bottom-btns'
