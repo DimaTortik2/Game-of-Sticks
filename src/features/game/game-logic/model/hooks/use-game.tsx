@@ -3,79 +3,150 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import Cookies from 'js-cookie'
 
-// --- Jotai State ---
-
-// --- ИНТЕГРАЦИЯ: Импорт настоящей игровой логики ---
-import * as GameEngine from '../helpers/game-engine'
-import * as GameEngineMode5 from '../helpers/game-engine-mode5'
-import { cacheService } from '../../../../cahce/api/services/cache.service'
-import { getGameModeDataFromCookies } from '../../../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
-import { gameParamsCookieAtom, sticksArrCookieAtom, isHelpingAtom, winnerAtomCookieAtom, grundyValuesAtom } from '../../../../../app/stores/game/game-store'
+import {
+	gameParamsCookieAtom,
+	sticksArrCookieAtom,
+	isHelpingAtom,
+	winnerAtomCookieAtom,
+	grundyValuesAtom,
+} from '../../../../../app/stores/game/game-store'
 import type { IGameParams } from '../../../../../app/stores/interfaces/game-params.interface'
 import type { IStick } from '../../../../../entities/sticks'
+import { getGameModeDataFromCookies } from '../../../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
 import { NotValidToast } from '../../../table/ui/not-valid-toast'
+import { cacheService } from '../../../../cahce/api/services/cache.service'
 
-// --- Вспомогательные функции-переводчики ---
+import * as GameEngine from '../helpers/game-engine'
+import * as GameEngineMode5 from '../helpers/game-engine-mode5'
+import { normalizeGroupIdsAfterTurn } from '../helpers/normalize-group-ids'
 
 /**
- * Переводит состояние из массива объектов IStick в простой массив чисел,
- * понятный для игровой логики (например, [[stick, stick], [stick]] -> [2, 1]).
+ * ФИНАЛЬНЫЙ, ИСПРАВЛЕННЫЙ ИСПОЛНИТЕЛЬ ХОДА ИИ.
+ * Гарантирует, что ИИ берет палочки только из одной группы.
  */
-const sticksToPosition = (sticks: IStick[]): number[] => {
-	if (!sticks || sticks.length === 0) return []
+const applyAiMoveToSticks = (
+	currentSticks: IStick[],
+	positionBefore: number[],
+	positionAfter: number[]
+): IStick[] => {
+	const idsToTake = new Set<number>()
+	const availableSticks = currentSticks.filter(s => !s.isTaken)
 
-	const availableSticks = sticks.filter(s => !s.isTaken)
-	if (availableSticks.length === 0) return []
+	if (positionBefore.join(',') === positionAfter.join(',')) {
+		return currentSticks
+	}
 
-	const groups = new Map<number, number>()
-	availableSticks.forEach(stick => {
-		groups.set(stick.groupId, (groups.get(stick.groupId) || 0) + 1)
-	})
+	let prefixLength = 0
+	while (
+		prefixLength < positionBefore.length &&
+		prefixLength < positionAfter.length &&
+		positionBefore[prefixLength] === positionAfter[prefixLength]
+	) {
+		prefixLength++
+	}
 
-	return Array.from(groups.values())
+	let suffixLength = 0
+	while (
+		suffixLength < positionBefore.length - prefixLength &&
+		suffixLength < positionAfter.length - prefixLength &&
+		positionBefore[positionBefore.length - 1 - suffixLength] ===
+			positionAfter[positionAfter.length - 1 - suffixLength]
+	) {
+		suffixLength++
+	}
+
+	const beforeMiddle = positionBefore.slice(
+		prefixLength,
+		positionBefore.length - suffixLength
+	)
+	const afterMiddle = positionAfter.slice(
+		prefixLength,
+		positionAfter.length - suffixLength
+	)
+
+	if (beforeMiddle.length === 1) {
+		const changedGroupId = prefixLength
+		const sticksInTargetGroup = availableSticks.filter(
+			s => s.groupId === changedGroupId
+		)
+		const numToTake = beforeMiddle[0] - afterMiddle.reduce((a, b) => a + b, 0)
+
+		if (numToTake > 0) {
+			if (afterMiddle.length <= 1) {
+				for (let i = 0; i < numToTake; i++) {
+					idsToTake.add(
+						sticksInTargetGroup[sticksInTargetGroup.length - 1 - i].id
+					)
+				}
+			} else {
+				let takenInSplit = 0
+				let stickCursor = 0
+				for (const newGroupSize of afterMiddle) {
+					stickCursor += newGroupSize
+					if (
+						takenInSplit < numToTake &&
+						stickCursor < sticksInTargetGroup.length
+					) {
+						idsToTake.add(sticksInTargetGroup[stickCursor].id)
+						stickCursor++
+						takenInSplit++
+					}
+				}
+			}
+		}
+	} else if (beforeMiddle.length > 0) {
+		// Для режимов 1-2, когда могут быть взяты несколько групп
+		const totalTaken =
+			beforeMiddle.reduce((a, b) => a + b, 0) -
+			afterMiddle.reduce((a, b) => a + b, 0)
+		let takenCounter = 0
+		for (let i = availableSticks.length - 1; i >= 0; i--) {
+			if (takenCounter < totalTaken) {
+				idsToTake.add(availableSticks[i].id)
+				takenCounter++
+			} else {
+				break
+			}
+		}
+	}
+
+	return currentSticks.map(stick =>
+		idsToTake.has(stick.id)
+			? { ...stick, isTaken: true, isSelected: false }
+			: stick
+	)
 }
 
-/**
- * Переводит простой массив чисел обратно в массив объектов IStick.
- * Создает совершенно новый массив палочек.
- */
-const positionToSticks = (position: number[]): IStick[] => {
-	const newSticks: IStick[] = []
-	let stickIdCounter = 0
-	position.forEach((groupCount, groupIndex) => {
-		for (let i = 0; i < groupCount; i++) {
-			newSticks.push({
-				id: stickIdCounter++,
-				isTaken: false,
-				isSelected: false,
-				groupId: groupIndex,
-			})
+const sticksToPosition = (sticks: IStick[]): number[] => {
+	if (!sticks || sticks.length === 0) return []
+	const availableSticks = sticks.filter(s => !s.isTaken)
+	if (availableSticks.length === 0) return []
+	const groups = new Map<number, number>()
+	availableSticks.forEach(stick => {
+		const groupId = stick.groupId
+		if (typeof groupId === 'number' && groupId >= 0) {
+			groups.set(groupId, (groups.get(groupId) || 0) + 1)
 		}
 	})
-	return newSticks
+	const sortedGroupIds = Array.from(groups.keys()).sort((a, b) => a - b)
+	return sortedGroupIds.map(id => groups.get(id)!)
 }
 
 export const useGame = () => {
-	// --- STATE & PARAMS ---
 	const [gameParams, setGameParams] = useAtom(gameParamsCookieAtom)
 	const [sticksArr, setSticksArr] = useAtom(sticksArrCookieAtom)
 	const [isHelping, setIsHelping] = useAtom(isHelpingAtom)
 	const setWinner = useSetAtom(winnerAtomCookieAtom)
-	const [grundyValues, setGrundyValues] = useAtom(grundyValuesAtom) // Состояние для кэша
-
-	// Состояние для управления UI модального окна кэша
+	const [grundyValues, setGrundyValues] = useAtom(grundyValuesAtom)
 	const [isCacheModalOpen, setCacheModalOpen] = useState(false)
 	const [cacheCalcProgress, setCacheCalcProgress] = useState(0)
 	const [cacheStatusMessage, setCacheStatusMessage] = useState('')
-
 	const { modeNum } = getGameModeDataFromCookies()
 	const isDev = Cookies.get('devMode') === 'true'
-	const { isEnemyStep, isFirstComputerStep, helpsCount, sticksCount } =
-		gameParams
+	const { isEnemyStep, isFirstComputerStep, helpsCount } = gameParams
 	const selectedSticksCount =
 		sticksArr?.filter(stick => stick.isSelected && !stick.isTaken).length || 0
 
-	// --- NOTIFICATIONS ---
 	const showNotValidMoveToast = useCallback(() => {
 		toast(<NotValidToast />, {
 			containerId: 'gameTable',
@@ -90,38 +161,35 @@ export const useGame = () => {
 		})
 	}, [])
 
-	// --- CORE GAME LOGIC ---
-
 	const makeAiTurn = useCallback(
 		async (currentSticks: IStick[], currentParams: IGameParams) => {
-			const currentPosition = sticksToPosition(currentSticks)
-			let newPosition: number[] | null = null
-
+			const positionBefore = sticksToPosition(currentSticks)
+			let positionAfter: number[] | null = null
 			switch (modeNum) {
 				case 1:
-					newPosition = GameEngine.move_1_2(
-						currentPosition,
+					positionAfter = GameEngine.move_1_2(
+						positionBefore,
 						1,
 						currentParams.maxPerStep!
 					)
 					break
 				case 2:
-					newPosition = GameEngine.move_1_2(
-						currentPosition,
+					positionAfter = GameEngine.move_1_2(
+						positionBefore,
 						currentParams.sticksRange![0],
 						currentParams.sticksRange![1]
 					)
 					break
 				case 3:
-					newPosition = GameEngine.move_3_4(
-						currentPosition,
+					positionAfter = GameEngine.move_3_4(
+						positionBefore,
 						1,
 						currentParams.maxPerStepStreak!
 					)
 					break
 				case 4:
-					newPosition = GameEngine.move_3_4(
-						currentPosition,
+					positionAfter = GameEngine.move_3_4(
+						positionBefore,
 						currentParams.sticksRangeStreak![0],
 						currentParams.sticksRangeStreak![1]
 					)
@@ -130,63 +198,81 @@ export const useGame = () => {
 					if (!grundyValues) {
 						if (currentParams.sticksCount > 30) {
 							setCacheModalOpen(true)
-							return // Прерываем ход, ждем действий пользователя в модалке
+							return
 						}
-						// Для малого кол-ва палочек считаем "на лету" без прогресс-бара
-						const smallCache = GameEngineMode5.calculateGrundyCache(
+						const cache = GameEngineMode5.calculateGrundyCache(
 							currentParams.sticksCount,
 							() => {}
 						)
-						setGrundyValues(smallCache)
-						newPosition = GameEngineMode5.move_5(currentPosition, smallCache)
+						setGrundyValues(cache)
+						positionAfter = GameEngineMode5.move_5(positionBefore, cache)
 					} else {
-						newPosition = GameEngineMode5.move_5(currentPosition, grundyValues)
+						positionAfter = GameEngineMode5.move_5(positionBefore, grundyValues)
 					}
 					break
 			}
-
-			if (newPosition === null) {
-				console.error('AI не смог сделать ход. Проверьте логику.')
-				setGameParams({ ...currentParams, isEnemyStep: false }) // Отдаем ход игроку
+			if (positionAfter === null) {
+				console.error('AI не смог сделать ход.')
+				setGameParams({ ...currentParams, isEnemyStep: false })
 				return
 			}
-
-			const newSticks = positionToSticks(newPosition)
-			const remainingCount = newSticks.length
-
-			if (remainingCount === 0) {
-				setSticksArr(newSticks)
-				setWinner('enemy') // Противник сделал последний ход и проиграл
-				return
-			}
-
-			setSticksArr(newSticks)
-			setGameParams({
+			let newSticksState = applyAiMoveToSticks(
+				currentSticks,
+				positionBefore,
+				positionAfter
+			)
+			newSticksState = normalizeGroupIdsAfterTurn(newSticksState)
+			const remainingCount = newSticksState.filter(s => !s.isTaken).length
+			const finalParams = {
 				...currentParams,
 				sticksCount: remainingCount,
 				isEnemyStep: false,
-			})
+			}
+			const positionForPlayer = sticksToPosition(newSticksState)
+
+			if (!GameEngine.canAnyoneMove(positionForPlayer, finalParams, modeNum)) {
+				setSticksArr(newSticksState)
+				setWinner('enemy')
+				return
+			}
+
+			setSticksArr(newSticksState)
+			setGameParams(finalParams)
 		},
 		[
 			modeNum,
-			gameParams,
 			grundyValues,
 			setGameParams,
 			setSticksArr,
 			setWinner,
 			setGrundyValues,
+			setCacheModalOpen,
 		]
 	)
 
 	const handlePlayerTurn = useCallback(() => {
 		if (!sticksArr || isEnemyStep || selectedSticksCount === 0) return
 
-		const positionBefore = sticksToPosition(sticksArr)
-		const tempSticksAfter = sticksArr.map(stick =>
-			stick.isSelected ? { ...stick, isTaken: true } : stick
-		)
-		const positionAfter = sticksToPosition(tempSticksAfter)
+		const selectedSticks = sticksArr.filter(s => s.isSelected && !s.isTaken)
+		if (
+			(modeNum === 3 || modeNum === 4 || modeNum === 5) &&
+			selectedSticks.length > 0
+		) {
+			const sortedById = [...selectedSticks].sort((a, b) => a.id - b.id)
+			for (let i = 1; i < sortedById.length; i++) {
+				if (sortedById[i].id !== sortedById[i - 1].id + 1) {
+					showNotValidMoveToast()
+					return
+				}
+			}
+		}
 
+		const tempSticksForCheck = sticksArr.map(s =>
+			s.isSelected ? { ...s, isTaken: true } : s
+		)
+		const normalizedForCheck = normalizeGroupIdsAfterTurn(tempSticksForCheck)
+		const positionBefore = sticksToPosition(sticksArr)
+		const positionAfter = sticksToPosition(normalizedForCheck)
 		let isMoveValid = false
 		switch (modeNum) {
 			case 1:
@@ -228,32 +314,34 @@ export const useGame = () => {
 				)
 				break
 		}
-
 		if (!isMoveValid) {
 			showNotValidMoveToast()
-			// Сбрасываем выделение
 			setSticksArr(sticksArr.map(s => ({ ...s, isSelected: false })))
 			return
 		}
-
-		const newSticks = positionToSticks(positionAfter)
-		const remainingAfterPlayer = newSticks.length
-
-		if (remainingAfterPlayer === 0) {
-			setSticksArr(newSticks)
-			setWinner('player') // Игрок сделал последний ход и проиграл
-			return
-		}
-
+		let sticksAfterPlayerMove = sticksArr.map(stick =>
+			stick.isSelected ? { ...stick, isTaken: true, isSelected: false } : stick
+		)
+		sticksAfterPlayerMove = normalizeGroupIdsAfterTurn(sticksAfterPlayerMove)
+		const remainingAfterPlayer = sticksAfterPlayerMove.filter(
+			s => !s.isTaken
+		).length
 		const newParams = {
 			...gameParams,
 			sticksCount: remainingAfterPlayer,
 			isEnemyStep: true,
 		}
-		setSticksArr(newSticks)
-		setGameParams(newParams)
+		const positionForOpponent = sticksToPosition(sticksAfterPlayerMove)
 
-		setTimeout(() => makeAiTurn(newSticks, newParams), 1500)
+		if (!GameEngine.canAnyoneMove(positionForOpponent, newParams, modeNum)) {
+			setSticksArr(sticksAfterPlayerMove)
+			setWinner('player')
+			return
+		}
+
+		setSticksArr(sticksAfterPlayerMove)
+		setGameParams(newParams)
+		setTimeout(() => makeAiTurn(sticksAfterPlayerMove, newParams), 1500)
 	}, [
 		sticksArr,
 		isEnemyStep,
@@ -267,135 +355,123 @@ export const useGame = () => {
 		showNotValidMoveToast,
 	])
 
-const handleHelpClick = useCallback(() => {
-	// 1. Проверяем, можно ли использовать подсказку
-	if (
-		!sticksArr ||
-		isEnemyStep ||
-		(helpsCount !== undefined && helpsCount <= 0)
-	) {
-		return
-	}
+	const handleHelpClick = useCallback(async () => {
+		if (
+			!sticksArr ||
+			isEnemyStep ||
+			(helpsCount !== undefined && helpsCount <= 0)
+		)
+			return
 
-	// 2. Обновляем UI и состояние: показываем, что "думаем", и уменьшаем счетчик
-	setIsHelping(true)
-	const newHelpsCount = (helpsCount || 0) - 1
-	// Сразу обновляем gameParams, чтобы в расчетах использовалось актуальное число подсказок
-	const currentParamsForHelp = { ...gameParams, helpsCount: newHelpsCount }
-	setGameParams(currentParamsForHelp)
+		setIsHelping(true)
+		const newHelpsCount = (helpsCount || 0) - 1
+		const currentParamsForHelp = { ...gameParams, helpsCount: newHelpsCount }
+		setGameParams(currentParamsForHelp)
 
-	// 3. Вычисляем оптимальный ход для текущей позиции игрока
-	const currentPosition = sticksToPosition(sticksArr)
-	let optimalNextPosition: number[] | null = null
+		const positionBefore = sticksToPosition(sticksArr)
+		let positionAfter: number[] | null = null
 
-	switch (modeNum) {
-		case 1:
-			optimalNextPosition = GameEngine.move_1_2(
-				currentPosition,
-				1,
-				currentParamsForHelp.maxPerStep!
-			)
-			break
-		case 2:
-			optimalNextPosition = GameEngine.move_1_2(
-				currentPosition,
-				currentParamsForHelp.sticksRange![0],
-				currentParamsForHelp.sticksRange![1]
-			)
-			break
-		case 3:
-			optimalNextPosition = GameEngine.move_3_4(
-				currentPosition,
-				1,
-				currentParamsForHelp.maxPerStepStreak!
-			)
-			break
-		case 4:
-			optimalNextPosition = GameEngine.move_3_4(
-				currentPosition,
-				currentParamsForHelp.sticksRangeStreak![0],
-				currentParamsForHelp.sticksRangeStreak![1]
-			)
-			break
-		case 5:
-			// Проверяем наличие кэша, как и при ходе ИИ
-			if (!grundyValues) {
-				if (currentParamsForHelp.sticksCount > 30) {
-					// Если кэш нужен, но его нет, отменяем подсказку и открываем модалку
-					setCacheModalOpen(true)
-					setIsHelping(false) // Отменяем состояние "думаем"
-					setGameParams(gameParams) // Возвращаем старое число подсказок
-					return // Прерываем выполнение
+		switch (modeNum) {
+			case 1:
+				positionAfter = GameEngine.move_1_2(
+					positionBefore,
+					1,
+					currentParamsForHelp.maxPerStep!
+				)
+				break
+			case 2:
+				positionAfter = GameEngine.move_1_2(
+					positionBefore,
+					currentParamsForHelp.sticksRange![0],
+					currentParamsForHelp.sticksRange![1]
+				)
+				break
+			case 3:
+				positionAfter = GameEngine.move_3_4(
+					positionBefore,
+					1,
+					currentParamsForHelp.maxPerStepStreak!
+				)
+				break
+			case 4:
+				positionAfter = GameEngine.move_3_4(
+					positionBefore,
+					currentParamsForHelp.sticksRangeStreak![0],
+					currentParamsForHelp.sticksRangeStreak![1]
+				)
+				break
+			case 5:
+				if (!grundyValues) {
+					if (currentParamsForHelp.sticksCount > 30) {
+						setCacheModalOpen(true)
+						setIsHelping(false)
+						setGameParams(gameParams)
+						return
+					}
+					const cache = GameEngineMode5.calculateGrundyCache(
+						currentParamsForHelp.sticksCount,
+						() => {}
+					)
+					positionAfter = GameEngineMode5.move_5(positionBefore, cache)
+				} else {
+					positionAfter = GameEngineMode5.move_5(positionBefore, grundyValues)
 				}
-				// Для малого числа палочек считаем на лету
-				const smallCache = GameEngineMode5.calculateGrundyCache(
-					currentParamsForHelp.sticksCount,
-					() => {}
-				)
-				optimalNextPosition = GameEngineMode5.move_5(
-					currentPosition,
-					smallCache
-				)
-			} else {
-				optimalNextPosition = GameEngineMode5.move_5(
-					currentPosition,
-					grundyValues
-				)
-			}
-			break
-	}
+				break
+		}
 
-	if (optimalNextPosition === null) {
-		console.error('Подсказка не смогла рассчитать ход.')
-		setIsHelping(false) // Сбрасываем UI
-		setGameParams(gameParams) // Возвращаем счетчик
-		return
-	}
-
-	// 4. Через небольшую задержку (для эффекта "раздумий") делаем ход за игрока
-	setTimeout(() => {
-		const sticksAfterHelp = positionToSticks(optimalNextPosition!)
-		const remainingAfterHelp = sticksAfterHelp.length
-
-		// 5. Проверяем, не закончилась ли игра этим ходом
-		if (remainingAfterHelp === 0) {
-			setSticksArr(sticksAfterHelp)
-			setWinner('player') // Игрок использовал подсказку, чтобы проиграть
+		if (positionAfter === null) {
+			console.error('Подсказка не смогла рассчитать ход.')
 			setIsHelping(false)
+			setGameParams(gameParams)
 			return
 		}
 
-		// 6. Обновляем доску и передаем ход компьютеру
-		const paramsAfterHelp = {
-			...currentParamsForHelp,
-			sticksCount: remainingAfterHelp,
-			isEnemyStep: true,
-		}
-		setSticksArr(sticksAfterHelp)
-		setGameParams(paramsAfterHelp)
-		setIsHelping(false) // Завершаем состояние "помощи"
-
-		// 7. Вызываем ответный ход ИИ
 		setTimeout(() => {
-			makeAiTurn(sticksAfterHelp, paramsAfterHelp)
-		}, 1500)
-	}, 1000)
-}, [
-	sticksArr,
-	isEnemyStep,
-	helpsCount,
-	gameParams,
-	modeNum,
-	grundyValues,
-	setGameParams,
-	setIsHelping,
-	setSticksArr,
-	setWinner,
-	makeAiTurn,
-	setCacheModalOpen, // Добавлена зависимость
-])
+			let sticksAfterHelp = applyAiMoveToSticks(
+				sticksArr,
+				positionBefore,
+				positionAfter!
+			)
+			sticksAfterHelp = normalizeGroupIdsAfterTurn(sticksAfterHelp)
 
-	// --- SIDE EFFECTS (First computer move) ---
+			const remainingAfterHelp = sticksAfterHelp.filter(s => !s.isTaken).length
+			const paramsAfterHelp = {
+				...currentParamsForHelp,
+				sticksCount: remainingAfterHelp,
+				isEnemyStep: true,
+			}
+			const positionForOpponent = sticksToPosition(sticksAfterHelp)
+
+			if (
+				!GameEngine.canAnyoneMove(positionForOpponent, paramsAfterHelp, modeNum)
+			) {
+				setSticksArr(sticksAfterHelp)
+				setWinner('player')
+				setIsHelping(false)
+				return
+			}
+
+			setSticksArr(sticksAfterHelp)
+			setGameParams(paramsAfterHelp)
+			setIsHelping(false)
+
+			setTimeout(() => makeAiTurn(sticksAfterHelp, paramsAfterHelp), 1500)
+		}, 1000)
+	}, [
+		sticksArr,
+		isEnemyStep,
+		helpsCount,
+		gameParams,
+		modeNum,
+		grundyValues,
+		setGameParams,
+		setIsHelping,
+		setSticksArr,
+		setWinner,
+		makeAiTurn,
+		setCacheModalOpen,
+	])
+
 	useEffect(() => {
 		if (sticksArr && sticksArr.length > 0 && isFirstComputerStep) {
 			const initialParams = {
@@ -404,19 +480,16 @@ const handleHelpClick = useCallback(() => {
 				isFirstComputerStep: false,
 			}
 			setGameParams(initialParams)
-			// Запускаем ход ИИ с начальными параметрами
 			setTimeout(() => makeAiTurn(sticksArr, initialParams), 1000)
 		}
 	}, [isFirstComputerStep, sticksArr, gameParams, setGameParams, makeAiTurn])
 
-	// --- CACHE MODAL HANDLERS ---
 	const handleLoadCacheFromServer = useCallback(async () => {
 		setCacheStatusMessage('Загрузка с сервера...')
 		try {
 			const cache = await cacheService.loadFromServer()
 			setGrundyValues(cache)
 			setCacheModalOpen(false)
-			// После успешной загрузки, автоматически повторяем ход ИИ
 			setTimeout(() => makeAiTurn(sticksArr!, gameParams), 50)
 		} catch (error) {
 			setCacheStatusMessage(
@@ -448,11 +521,14 @@ const handleHelpClick = useCallback(() => {
 
 	const handleCalculateCache = useCallback(async () => {
 		setCacheStatusMessage('Идет расчет... Это займет много времени.')
-		setCacheCalcProgress(0) // Сбрасываем прогресс-бар
+		setCacheCalcProgress(0)
 		try {
-			const cache = await cacheService.calculate(sticksCount, percent => {
-				setCacheCalcProgress(percent)
-			})
+			const cache = await cacheService.calculate(
+				gameParams.sticksCount,
+				percent => {
+					setCacheCalcProgress(percent)
+				}
+			)
 			setGrundyValues(cache)
 			setCacheModalOpen(false)
 			setTimeout(() => makeAiTurn(sticksArr!, gameParams), 50)
@@ -463,9 +539,14 @@ const handleHelpClick = useCallback(() => {
 				}`
 			)
 		}
-	}, [sticksCount, sticksArr, gameParams, setGrundyValues, makeAiTurn])
+	}, [
+		gameParams.sticksCount,
+		sticksArr,
+		gameParams,
+		setGrundyValues,
+		makeAiTurn,
+	])
 
-	// --- API для UI ---
 	return {
 		gameParams,
 		isDev,
@@ -475,7 +556,6 @@ const handleHelpClick = useCallback(() => {
 		selectedSticksCount,
 		handlePlayerTurn,
 		handleHelpClick,
-		// Новые пропсы для модального окна
 		isCacheModalOpen,
 		cacheCalcProgress,
 		cacheStatusMessage,
