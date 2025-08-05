@@ -1,4 +1,4 @@
-import { myStep } from '../features/game/field/model/helpers/my-step'
+import { myStep } from '../features/game/game-logic/model/helpers/my-step'
 
 export function TestPage() {
 	console.log(
