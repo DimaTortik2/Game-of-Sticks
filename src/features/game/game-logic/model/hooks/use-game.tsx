@@ -24,25 +24,72 @@ import * as GameEngine from '../helpers/game-engine'
 import * as GameEngineMode5 from '../helpers/game-engine-mode5'
 import { normalizeGroupIdsAfterTurn } from '../helpers/normalize-group-ids'
 
+
 const applyAiMoveToSticks = (
 	currentSticks: IStick[],
+	positionBefore: number[],
 	positionAfter: number[]
 ): IStick[] => {
+	const idsToTake = new Set<number>()
 	const availableSticks = currentSticks.filter(s => !s.isTaken)
-	const totalSticksToKeep = positionAfter.reduce((sum, count) => sum + count, 0)
-	const idsToKeep = new Set<number>()
-	for (let i = 0; i < totalSticksToKeep; i++) {
-		if (i < availableSticks.length) {
-			idsToKeep.add(availableSticks[i].id)
+
+	const beforeMap = new Map<number, number>()
+	positionBefore.forEach(size =>
+		beforeMap.set(size, (beforeMap.get(size) || 0) + 1)
+	)
+
+	const afterMap = new Map<number, number>()
+	positionAfter.forEach(size =>
+		afterMap.set(size, (afterMap.get(size) || 0) + 1)
+	)
+
+	let removedGroupSize = -1
+	let addedGroups: number[] = []
+
+	for (const [size, count] of beforeMap.entries()) {
+		if (count > (afterMap.get(size) || 0)) {
+			removedGroupSize = size
+			break
 		}
 	}
-	return currentSticks.map(stick => {
-		if (stick.isTaken) return stick
-		if (!idsToKeep.has(stick.id)) {
-			return { ...stick, isTaken: true, isSelected: false }
+
+	for (const [size, count] of afterMap.entries()) {
+		for (let i = 0; i < count - (beforeMap.get(size) || 0); i++) {
+			addedGroups.push(size)
 		}
-		return stick
-	})
+	}
+
+	if (removedGroupSize !== -1) {
+		const groupsBefore = sticksToPosition(currentSticks)
+		const targetGroupId = groupsBefore.findIndex(
+			size => size === removedGroupSize
+		)
+
+		if (targetGroupId !== -1) {
+			const sticksInTargetGroup = availableSticks.filter(
+				s => s.groupId === targetGroupId
+			)
+			let stickCursor = 0
+			for (const newGroupSize of addedGroups) {
+				stickCursor += newGroupSize
+			}
+			const numToTake = removedGroupSize - stickCursor
+
+			// Начинаем брать палочки ПОСЛЕ тех, что остались в первой новой группе
+			let startIndex = addedGroups.length > 0 ? addedGroups[0] : 0
+			for (let i = 0; i < numToTake; i++) {
+				if (startIndex + i < sticksInTargetGroup.length) {
+					idsToTake.add(sticksInTargetGroup[startIndex + i].id)
+				}
+			}
+		}
+	}
+
+	return currentSticks.map(stick =>
+		idsToTake.has(stick.id)
+			? { ...stick, isTaken: true, isSelected: false }
+			: stick
+	)
 }
 
 const sticksToPosition = (sticks: IStick[]): number[] => {
@@ -187,7 +234,12 @@ export const useGame = () => {
 				}
 			}
 
-			let newSticksState = applyAiMoveToSticks(currentSticks, positionAfter)
+			let newSticksState = applyAiMoveToSticks(
+				currentSticks,
+				positionBefore,
+				positionAfter,
+				modeNum
+			)
 			newSticksState = normalizeGroupIdsAfterTurn(newSticksState)
 			const remainingCount = newSticksState.filter(s => !s.isTaken).length
 			const finalParams = {
@@ -396,7 +448,12 @@ export const useGame = () => {
 
 		await new Promise(resolve => setTimeout(resolve, 1000))
 
-		let sticksAfterHelp = applyAiMoveToSticks(sticksArr, positionAfter!)
+		let sticksAfterHelp = applyAiMoveToSticks(
+			sticksArr,
+			positionBefore,
+			positionAfter!,
+			modeNum
+		)
 		sticksAfterHelp = normalizeGroupIdsAfterTurn(sticksAfterHelp)
 
 		const remainingAfterHelp = sticksAfterHelp.filter(s => !s.isTaken).length
