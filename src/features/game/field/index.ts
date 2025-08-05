@@ -1,8 +1,3 @@
 export { GameFiled } from './ui/game-field'
-export * from '../game-logic/model/helpers/mode_1_2_check'
-export * from '../game-logic/model/helpers/mode_3_4_check'
-export * from '../game-logic/model/helpers/mode_5_check'
-export * from '../game-logic/model/helpers/move_1_2'
-export * from '../game-logic/model/helpers/move_3_4'
-export * from '../game-logic/model/helpers/move_5'
+
 export { codeSticksData } from '../game-logic/model/helpers/code/code-sticks-data'

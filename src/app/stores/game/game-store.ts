@@ -66,3 +66,6 @@ export const isEnemyStep = atom(false)
 
 export const isMusicPlayingAtom = atom(false)
 export const activeMusicTrackAtom = atom<string | null>(null)
+
+
+export const grundyValuesAtom = atom<Map<string, number> | null>(null)
