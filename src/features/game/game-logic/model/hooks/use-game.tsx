@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { toast } from 'react-toastify'
 import Cookies from 'js-cookie'
 
+// --- Jotai State & Types (сохранены ваши пути) ---
 import {
 	gameParamsCookieAtom,
 	sticksArrCookieAtom,
@@ -12,109 +13,38 @@ import {
 } from '../../../../../app/stores/game/game-store'
 import type { IGameParams } from '../../../../../app/stores/interfaces/game-params.interface'
 import type { IStick } from '../../../../../entities/sticks'
+
+// --- UI & Services ---
 import { getGameModeDataFromCookies } from '../../../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
 import { NotValidToast } from '../../../table/ui/not-valid-toast'
 import { cacheService } from '../../../../cahce/api/services/cache.service'
 
+// --- Логика и Утилиты (сохранены ваши пути) ---
 import * as GameEngine from '../helpers/game-engine'
 import * as GameEngineMode5 from '../helpers/game-engine-mode5'
 import { normalizeGroupIdsAfterTurn } from '../helpers/normalize-group-ids'
 
-/**
- * ФИНАЛЬНЫЙ, ИСПРАВЛЕННЫЙ ИСПОЛНИТЕЛЬ ХОДА ИИ.
- * Гарантирует, что ИИ берет палочки только из одной группы.
- */
 const applyAiMoveToSticks = (
 	currentSticks: IStick[],
-	positionBefore: number[],
 	positionAfter: number[]
 ): IStick[] => {
-	const idsToTake = new Set<number>()
 	const availableSticks = currentSticks.filter(s => !s.isTaken)
+	const totalSticksToKeep = positionAfter.reduce((sum, count) => sum + count, 0)
+	const idsToKeep = new Set<number>()
 
-	if (positionBefore.join(',') === positionAfter.join(',')) {
-		return currentSticks
-	}
-
-	let prefixLength = 0
-	while (
-		prefixLength < positionBefore.length &&
-		prefixLength < positionAfter.length &&
-		positionBefore[prefixLength] === positionAfter[prefixLength]
-	) {
-		prefixLength++
-	}
-
-	let suffixLength = 0
-	while (
-		suffixLength < positionBefore.length - prefixLength &&
-		suffixLength < positionAfter.length - prefixLength &&
-		positionBefore[positionBefore.length - 1 - suffixLength] ===
-			positionAfter[positionAfter.length - 1 - suffixLength]
-	) {
-		suffixLength++
-	}
-
-	const beforeMiddle = positionBefore.slice(
-		prefixLength,
-		positionBefore.length - suffixLength
-	)
-	const afterMiddle = positionAfter.slice(
-		prefixLength,
-		positionAfter.length - suffixLength
-	)
-
-	if (beforeMiddle.length === 1) {
-		const changedGroupId = prefixLength
-		const sticksInTargetGroup = availableSticks.filter(
-			s => s.groupId === changedGroupId
-		)
-		const numToTake = beforeMiddle[0] - afterMiddle.reduce((a, b) => a + b, 0)
-
-		if (numToTake > 0) {
-			if (afterMiddle.length <= 1) {
-				for (let i = 0; i < numToTake; i++) {
-					idsToTake.add(
-						sticksInTargetGroup[sticksInTargetGroup.length - 1 - i].id
-					)
-				}
-			} else {
-				let takenInSplit = 0
-				let stickCursor = 0
-				for (const newGroupSize of afterMiddle) {
-					stickCursor += newGroupSize
-					if (
-						takenInSplit < numToTake &&
-						stickCursor < sticksInTargetGroup.length
-					) {
-						idsToTake.add(sticksInTargetGroup[stickCursor].id)
-						stickCursor++
-						takenInSplit++
-					}
-				}
-			}
-		}
-	} else if (beforeMiddle.length > 0) {
-		// Для режимов 1-2, когда могут быть взяты несколько групп
-		const totalTaken =
-			beforeMiddle.reduce((a, b) => a + b, 0) -
-			afterMiddle.reduce((a, b) => a + b, 0)
-		let takenCounter = 0
-		for (let i = availableSticks.length - 1; i >= 0; i--) {
-			if (takenCounter < totalTaken) {
-				idsToTake.add(availableSticks[i].id)
-				takenCounter++
-			} else {
-				break
-			}
+	for (let i = 0; i < totalSticksToKeep; i++) {
+		if (i < availableSticks.length) {
+			idsToKeep.add(availableSticks[i].id)
 		}
 	}
 
-	return currentSticks.map(stick =>
-		idsToTake.has(stick.id)
-			? { ...stick, isTaken: true, isSelected: false }
-			: stick
-	)
+	return currentSticks.map(stick => {
+		if (stick.isTaken) return stick
+		if (!idsToKeep.has(stick.id)) {
+			return { ...stick, isTaken: true, isSelected: false }
+		}
+		return stick
+	})
 }
 
 const sticksToPosition = (sticks: IStick[]): number[] => {
@@ -122,12 +52,14 @@ const sticksToPosition = (sticks: IStick[]): number[] => {
 	const availableSticks = sticks.filter(s => !s.isTaken)
 	if (availableSticks.length === 0) return []
 	const groups = new Map<number, number>()
+
 	availableSticks.forEach(stick => {
 		const groupId = stick.groupId
 		if (typeof groupId === 'number' && groupId >= 0) {
 			groups.set(groupId, (groups.get(groupId) || 0) + 1)
 		}
 	})
+
 	const sortedGroupIds = Array.from(groups.keys()).sort((a, b) => a - b)
 	return sortedGroupIds.map(id => groups.get(id)!)
 }
@@ -138,9 +70,11 @@ export const useGame = () => {
 	const [isHelping, setIsHelping] = useAtom(isHelpingAtom)
 	const setWinner = useSetAtom(winnerAtomCookieAtom)
 	const [grundyValues, setGrundyValues] = useAtom(grundyValuesAtom)
+
 	const [isCacheModalOpen, setCacheModalOpen] = useState(false)
 	const [cacheCalcProgress, setCacheCalcProgress] = useState(0)
 	const [cacheStatusMessage, setCacheStatusMessage] = useState('')
+
 	const { modeNum } = getGameModeDataFromCookies()
 	const isDev = Cookies.get('devMode') === 'true'
 	const { isEnemyStep, isFirstComputerStep, helpsCount } = gameParams
@@ -165,6 +99,7 @@ export const useGame = () => {
 		async (currentSticks: IStick[], currentParams: IGameParams) => {
 			const positionBefore = sticksToPosition(currentSticks)
 			let positionAfter: number[] | null = null
+
 			switch (modeNum) {
 				case 1:
 					positionAfter = GameEngine.move_1_2(
@@ -211,17 +146,16 @@ export const useGame = () => {
 					}
 					break
 			}
+
 			if (positionAfter === null) {
 				console.error('AI не смог сделать ход.')
 				setGameParams({ ...currentParams, isEnemyStep: false })
 				return
 			}
-			let newSticksState = applyAiMoveToSticks(
-				currentSticks,
-				positionBefore,
-				positionAfter
-			)
+
+			let newSticksState = applyAiMoveToSticks(currentSticks, positionAfter)
 			newSticksState = normalizeGroupIdsAfterTurn(newSticksState)
+
 			const remainingCount = newSticksState.filter(s => !s.isTaken).length
 			const finalParams = {
 				...currentParams,
@@ -254,10 +188,11 @@ export const useGame = () => {
 		if (!sticksArr || isEnemyStep || selectedSticksCount === 0) return
 
 		const selectedSticks = sticksArr.filter(s => s.isSelected && !s.isTaken)
-		if (
-			(modeNum === 3 || modeNum === 4 || modeNum === 5) &&
-			selectedSticks.length > 0
-		) {
+
+		// =================== ГЛАВНОЕ ИСПРАВЛЕНИЕ ЗДЕСЬ ===================
+		// Эта проверка теперь применяется ТОЛЬКО к режимам 3 и 4.
+		// Режим 5 будет полностью проверяться своей функцией `mode_5_check`.
+		if ((modeNum === 3 || modeNum === 4) && selectedSticks.length > 0) {
 			const sortedById = [...selectedSticks].sort((a, b) => a.id - b.id)
 			for (let i = 1; i < sortedById.length; i++) {
 				if (sortedById[i].id !== sortedById[i - 1].id + 1) {
@@ -266,13 +201,16 @@ export const useGame = () => {
 				}
 			}
 		}
+		// ================= КОНЕЦ ИСПРАВЛЕНИЯ =================
 
 		const tempSticksForCheck = sticksArr.map(s =>
 			s.isSelected ? { ...s, isTaken: true } : s
 		)
 		const normalizedForCheck = normalizeGroupIdsAfterTurn(tempSticksForCheck)
+
 		const positionBefore = sticksToPosition(sticksArr)
 		const positionAfter = sticksToPosition(normalizedForCheck)
+
 		let isMoveValid = false
 		switch (modeNum) {
 			case 1:
@@ -314,15 +252,18 @@ export const useGame = () => {
 				)
 				break
 		}
+
 		if (!isMoveValid) {
 			showNotValidMoveToast()
 			setSticksArr(sticksArr.map(s => ({ ...s, isSelected: false })))
 			return
 		}
+
 		let sticksAfterPlayerMove = sticksArr.map(stick =>
 			stick.isSelected ? { ...stick, isTaken: true, isSelected: false } : stick
 		)
 		sticksAfterPlayerMove = normalizeGroupIdsAfterTurn(sticksAfterPlayerMove)
+
 		const remainingAfterPlayer = sticksAfterPlayerMove.filter(
 			s => !s.isTaken
 		).length
@@ -427,11 +368,7 @@ export const useGame = () => {
 		}
 
 		setTimeout(() => {
-			let sticksAfterHelp = applyAiMoveToSticks(
-				sticksArr,
-				positionBefore,
-				positionAfter!
-			)
+			let sticksAfterHelp = applyAiMoveToSticks(sticksArr, positionAfter!)
 			sticksAfterHelp = normalizeGroupIdsAfterTurn(sticksAfterHelp)
 
 			const remainingAfterHelp = sticksAfterHelp.filter(s => !s.isTaken).length
