@@ -1,7 +1,7 @@
 import CallReceivedIcon from '@mui/icons-material/CallReceived'
 import { IconButton } from '../../../../shared/ui/icons/icon-button'
 import { useState, useEffect } from 'react'
-import { pluralizeSticks } from '../helpers/pluralize'
+import { pluralizeSticks } from '../model/helpers/pluralize'
 import { PREDEFINED_COLORS } from '../../../../app/consts/colors'
 import clsx from 'clsx'
 import { useAtom } from 'jotai'

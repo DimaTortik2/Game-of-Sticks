@@ -1,0 +1,1 @@
+export { useGame } from './model/hooks/use-game'
