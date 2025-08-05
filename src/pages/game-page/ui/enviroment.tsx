@@ -22,6 +22,7 @@ const {
 	selectedSticksCount,
 	handlePlayerTurn, // Это ваш mainlogic
 	handleHelpClick, // Это ваш handleHelpClick
+	isAiPreparing
 } = useGame()
 
 	return (
@@ -56,6 +57,7 @@ const {
 				isEnemyStep={isEnemyStep}
 				selectedCount={selectedSticksCount}
 				isHelping={isHelping}
+				isAiPreparing={isAiPreparing}
 			/>
 
 			<Btn

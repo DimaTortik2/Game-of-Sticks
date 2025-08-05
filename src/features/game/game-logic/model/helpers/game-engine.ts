@@ -256,10 +256,7 @@
 
 import type { IGameParams } from '../../../../../app/stores/interfaces/game-params.interface'
 
-// Эта переменная будет жить только внутри этого модуля.
-let gNumbers: number[] = []
-
-function gGen(min: number, max: number, endValue: number): number[] {
+export function gGen(min: number, max: number, endValue: number): number[] {
 	const ans: number[] = []
 	for (let i = 0; i <= endValue; i++) {
 		const tmpGLinks = new Set<number>()
@@ -280,7 +277,9 @@ function gGen(min: number, max: number, endValue: number): number[] {
 	return ans
 }
 
+// Эта функция теперь тоже чистая и принимает gNumbers как аргумент
 function SticksRangeIndex(
+	gNumbers: number[],
 	gTarget: number,
 	stixAmount: number,
 	min: number,
@@ -303,10 +302,13 @@ function SticksRangeIndex(
 	return [-1, -1]
 }
 
-function positionNimSum(arg: number[]): number {
+// Эта функция теперь тоже чистая
+function positionNimSum(gNumbers: number[], arg: number[]): number {
 	let ans = 0
 	arg.forEach(element => {
-		ans = ans ^ gNumbers[element]
+		if (gNumbers[element] !== undefined) {
+			ans = ans ^ gNumbers[element]
+		}
 	})
 	return ans
 }
@@ -316,8 +318,7 @@ export function move_1_2(
 	min: number,
 	max: number
 ): number[] {
-	let sum = 0
-	for (const element of position) sum += element
+	let sum = position.reduce((a, b) => a + b, 0)
 	if (sum < min) return position
 	if (sum <= max) return []
 
@@ -341,26 +342,29 @@ export function move_1_2(
 	return newPosition.filter(count => count > 0)
 }
 
+// ГЛАВНОЕ ИЗМЕНЕНИЕ: move_3_4 теперь требует gNumbers как четвертый аргумент
 export function move_3_4(
 	position: number[],
 	min: number,
-	max: number
-): number[] {
-	// Сбрасываем кэш gNumbers если параметры изменились, чтобы избежать неверных расчетов
-	// Этого не было в коде друга, но это важно для React-приложения
-	const paramsSignature = `${min}-${max}`
-	if (!gNumbers.length || (gNumbers as any).signature !== paramsSignature) {
-		const maxStickCount = Math.max(...position, 50)
-		gNumbers = gGen(min, max, maxStickCount)
-		;(gNumbers as any).signature = paramsSignature
+	max: number,
+	gNumbers: number[]
+): number[] | null {
+	if (!gNumbers || gNumbers.length === 0) {
+		console.error('AI knowledge (gNumbers) is missing for move_3_4')
+		return null // Возвращаем null если знаний нет
 	}
-
-	const nimSum = positionNimSum(position)
+	const nimSum = positionNimSum(gNumbers, position)
 
 	if (nimSum !== 0) {
 		for (let i = 0; i < position.length; i++) {
 			const gTarget = nimSum ^ gNumbers[position[i]]
-			const bestMove = SticksRangeIndex(gTarget, position[i], min, max)
+			const bestMove = SticksRangeIndex(
+				gNumbers,
+				gTarget,
+				position[i],
+				min,
+				max
+			)
 			if (bestMove[1] !== -1) {
 				const ansPos = [...position]
 				if (position[i] - bestMove[0] > 0) {
@@ -373,7 +377,14 @@ export function move_3_4(
 		}
 		for (let i = 0; i < position.length; i++) {
 			const gTarget = nimSum ^ gNumbers[position[i]]
-			const bestMove = SticksRangeIndex(gTarget, position[i], min, max, 1)
+			const bestMove = SticksRangeIndex(
+				gNumbers,
+				gTarget,
+				position[i],
+				min,
+				max,
+				1
+			)
 			if (bestMove[1] !== -1) {
 				const ansPos = [...position]
 				ansPos.splice(
@@ -387,6 +398,7 @@ export function move_3_4(
 		}
 	}
 
+	// Если позиция проигрышная, делаем любой корректный ход
 	for (let i = 0; i < position.length; i++) {
 		if (position[i] >= min) {
 			const ansPos = [...position]
@@ -394,7 +406,7 @@ export function move_3_4(
 			return ansPos.filter(count => count > 0)
 		}
 	}
-	return position
+	return null // Если ход невозможен, возвращаем null
 }
 
 export function mode_1_2_check(
@@ -409,10 +421,6 @@ export function mode_1_2_check(
 	return movedSticks >= min && movedSticks <= max
 }
 
-/**
- * ФИНАЛЬНАЯ, ИСПРАВЛЕННАЯ ВЕРСИЯ ПРОВЕРКИ ДЛЯ РЕЖИМОВ 3 и 4.
- * Она простая, надежная и соответствует правилам.
- */
 export function mode_3_4_check(
 	positionBefore: number[],
 	positionAfter: number[],
@@ -422,13 +430,7 @@ export function mode_3_4_check(
 	const sticksBefore = positionBefore.reduce((a, b) => a + b, 0)
 	const sticksAfter = positionAfter.reduce((a, b) => a + b, 0)
 	const takenCount = sticksBefore - sticksAfter
-
-	// 1. Главная проверка: количество взятых палочек должно быть в диапазоне
-	if (takenCount < min || takenCount > max) {
-		return false
-	}
-
-	// 2. Находим неизменные группы в начале (префикс) и в конце (суффикс)
+	if (takenCount < min || takenCount > max) return false
 	let prefixLength = 0
 	while (
 		prefixLength < positionBefore.length &&
@@ -446,20 +448,11 @@ export function mode_3_4_check(
 	) {
 		suffixLength++
 	}
-
-	// 3. Выделяем ту часть, которая изменилась.
 	const beforeMiddle = positionBefore.slice(
 		prefixLength,
 		positionBefore.length - suffixLength
 	)
-
-	// 4. По правилам "подряд", игрок может воздействовать только на ОДНУ группу за ход.
-	// Если изменилась не одна группа, ход неверный.
-	if (beforeMiddle.length !== 1) {
-		return false
-	}
-
-	return true // Если все проверки пройдены, ход верный.
+	return beforeMiddle.length === 1
 }
 
 export function canAnyoneMove(
