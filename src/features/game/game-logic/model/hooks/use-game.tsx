@@ -537,7 +537,7 @@ export const useGame = () => {
 				cacheLoadingPromise = cacheService.loadFromServer()
 				cacheLoadingPromise
 					.then(cache => setGrundyValues(cache))
-					.catch(err => {
+					.catch(_ => {
 						cacheLoadingPromise = null
 					})
 			}
