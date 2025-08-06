@@ -16,7 +16,7 @@ import type { IStick } from '../../../../../entities/sticks'
 
 // --- UI & Services ---
 import { getGameModeDataFromCookies } from '../../../../../app/stores/game/cookies/game-mode/get-game-mode-data-from-cookies'
-import { NotValidToast } from '../../../table/ui/not-valid-toast'
+import { NotValidToast } from '../../../../toasts/ui/not-valid-toast'
 import { cacheService } from '../../../../cahce/api/services/cache.service'
 
 // --- Логика и Утилиты (сохранены ваши пути) ---

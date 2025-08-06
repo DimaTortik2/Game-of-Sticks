@@ -1,6 +1,6 @@
-import { MusicButton } from '../../../music'
-import { GameTableBtn } from './game-table-btn'
-import { HelpBtn } from './help-btn'
+import { MusicButton } from '../../../features/music'
+import { GameTableBtn } from '../../../features/game/table/ui/game-table-btn'
+import { HelpBtn } from '../../../features/game/help/ui/help-btn'
 
 export function GameTools({
 	isDev,

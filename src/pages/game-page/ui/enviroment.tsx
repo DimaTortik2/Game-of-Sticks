@@ -6,7 +6,7 @@ import clsx from 'clsx'
 import { ToastContainer } from 'react-toastify'
 import { GameTools } from '../../../features/game/table'
 
-import { EndGameModal } from '../../../features/game/table/ui/end-game-modal'
+import { EndGameModal } from '../../../features/game/end-game/ui/end-game-modal'
 import { GameParams } from '../../../widgets/game/ui/game-params'
 import { useGame } from '../../../features/game/game-logic'
 

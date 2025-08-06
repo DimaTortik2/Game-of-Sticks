@@ -2,9 +2,9 @@ import Checkbox from '@mui/material/Checkbox'
 import Cookies from 'js-cookie'
 import { useState } from 'react'
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { MusicButton } from '../../music'
 import Tooltip from '@mui/material/Tooltip'
 import clsx from 'clsx'
+import { MusicButton } from '../../../music'
 
 export function BottomBtns() {
 	const [isArrowClicked, setIsArrowClicked] = useState(false)

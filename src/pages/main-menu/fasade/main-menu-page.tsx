@@ -1,11 +1,11 @@
 import { GAME_MODES } from '../../../app/consts/game-modes'
 import { GameModeLink } from '../ui/game-mode-link'
 
-import { BottomBtns } from '../../../features/bottom-btns'
 import { ShinyTitle } from '../ui/shiny-ttitle'
 import { MainPageBackground } from '../../../shared/ui/bg/main-page-background'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
 import { setGameModeDataToCookies } from '../../../app/stores/game/cookies/game-mode/set-game-mode-data-to-cookies'
+import { BottomBtns } from '../../../features/game/bottom-btns'
 
 export const MainMenuPage = () => {
 	return (
