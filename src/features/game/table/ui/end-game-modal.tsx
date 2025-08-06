@@ -63,39 +63,39 @@ export function EndGameModal() {
 				<div
 					className={clsx(
 						'absolute top-0 left-0 w-16 h-120 [clip-path:polygon(0_0,100%_0,0_100%)] ',
-						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
+						isEnemyWin ? 'bg-[#864a8b]' : 'bg-[#58BF5F]'
 					)}
 				/>
 				<div
 					className={clsx(
 						'absolute top-0 left-0 w-100 h-50 transform rotate-180 [clip-path:polygon(100%_100%,0_100%,100%_0)]',
-						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
+						isEnemyWin ? 'bg-[#864a8b]' : 'bg-[#58BF5F]'
 					)}
 				/>
 				<div
 					className={clsx(
 						'absolute bottom-0 right-0 w-70 h-50  [clip-path:polygon(100%_100%,0_100%,100%_0)] ',
-						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
+						isEnemyWin ? 'bg-[#864a8b]' : 'bg-[#58BF5F]'
 					)}
 				/>
 				<div
 					className={clsx(
 						'absolute bottom-0 right-0 w-30 h-100  transform rotate-180 [clip-path:polygon(0_0,100%_0,0_100%)] ',
-						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
+						isEnemyWin ? 'bg-[#864a8b]' : 'bg-[#58BF5F]'
 					)}
 				/>
 
 				<div
 					className={clsx(
 						'absolute top-0 right-0 w-40 h-100 [clip-path:polygon(100%_0,_100%_100%,_0_0)]',
-						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
+						isEnemyWin ? 'bg-[#864a8b]' : 'bg-[#58BF5F]'
 					)}
 				/>
 
 				<div
 					className={clsx(
 						'absolute bottom-0 left-0 w-100 h-50 [clip-path:polygon(0_100%,_0_0,_100%_100%)]',
-						isEnemyWin ? 'bg-[#E59696]' : 'bg-[#58BF5F]'
+						isEnemyWin ? 'bg-[#864a8b]' : 'bg-[#58BF5F]'
 					)}
 				/>
 
