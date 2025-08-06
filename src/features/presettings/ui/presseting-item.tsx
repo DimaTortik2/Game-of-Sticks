@@ -8,6 +8,7 @@ export function PresettingItem({
 	max,
 	leftCount,
 	rightCount,
+	leftCountIsIvisible,
 	title,
 	isStreak,
 	onRandomClick,
@@ -20,6 +21,7 @@ export function PresettingItem({
 	title: string
 	isStreak?: boolean
 	onRandomClick?: () => void
+	leftCountIsIvisible?: boolean
 }) {
 	return (
 		<div className=' flex gap-10 items-center'>
@@ -38,8 +40,14 @@ export function PresettingItem({
 					</div>
 				)}
 			</div>
-			{leftCount && (
-				<div className='bg-[#3e3e3e] text-[#e8e8e8] w-12 h-12 p-6 rounded-full text-lg font-semibold shadow-lg flex items-center justify-center'>
+			{(leftCount || leftCountIsIvisible) && (
+				<div
+					className={clsx(
+						' text-[#e8e8e8] w-12 h-12 p-6 ',
+						leftCount &&
+							'bg-[#3e3e3e] rounded-full text-lg font-semibold shadow-lg flex items-center justify-center'
+					)}
+				>
 					{leftCount}
 				</div>
 			)}

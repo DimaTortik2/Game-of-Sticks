@@ -75,7 +75,8 @@ export function PressetingFormMode5() {
 				onRandomClick={() => setHelpsCount(randomize({ from: 0, to: 5 }))}
 			/>
 			<PresettingPushBtn
-				title='Сначала ходит компьютер'
+				ActiveTitle='Сначала ходит компьютер'
+				PassiveTitle='Первый ход за Вами'
 				onClick={() => {
 					setIsFirstComputerStep(prev => !prev)
 				}}

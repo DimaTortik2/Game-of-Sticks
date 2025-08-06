@@ -63,6 +63,7 @@ export function PressetingFormMode2() {
 					/>
 				}
 				rightCount={allCount}
+				leftCountIsIvisible={true}
 				onRandomClick={() => setAllCount(randomize({ from: 5, to: 50 }))}
 			/>
 
@@ -103,10 +104,12 @@ export function PressetingFormMode2() {
 					/>
 				}
 				rightCount={helpsCount}
+				leftCountIsIvisible={true}
 				onRandomClick={() => setHelpsCount(randomize({ from: 0, to: 5 }))}
 			/>
 			<PresettingPushBtn
-				title='Сначала ходит компьютер'
+				ActiveTitle='Сначала ходит компьютер'
+				PassiveTitle='Первый ход за Вами'
 				onClick={() => {
 					setIsFirstComputerStep(prev => !prev)
 				}}

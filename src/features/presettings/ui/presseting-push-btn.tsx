@@ -1,11 +1,13 @@
 import clsx from 'clsx'
 
 export function PresettingPushBtn({
-	title,
 	onClick,
 	isActive,
+	ActiveTitle,
+	PassiveTitle,
 }: {
-	title: string
+	ActiveTitle: string
+	PassiveTitle: string
 	onClick: () => void
 	isActive: boolean
 }) {
@@ -15,11 +17,11 @@ export function PresettingPushBtn({
 				<div
 					className={clsx(
 						'  text-[#e8e8e8] w-full max-w-md px-6 py-5  text-lg font-semibold shadow-lg flex items-center justify-center min-w-[350px] rounded-2xl transition-transform transform hover:scale-105 cursor-pointer',
-						isActive ? 'bg-[#4B9E51]' : 'bg-[#3e3e3e]'
+						isActive ? 'bg-[#E59696]' : 'bg-[#4B9E51]'
 					)}
 					onClick={onClick}
 				>
-					{title}
+					{isActive ? ActiveTitle : PassiveTitle}
 				</div>
 			</div>
 
