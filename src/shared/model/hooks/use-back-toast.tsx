@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import type { Id } from 'react-toastify'
+import ClearIcon from '@mui/icons-material/Clear'
 
 const ToastContent = ({
 	onBackClick,
@@ -18,7 +19,7 @@ const ToastContent = ({
 	}
 
 	return (
-		<div className='bg-[#3e3e3e] rounded-2xl p-4 text-[#e8e8e8]'>
+		<div className='bg-[#3e3e3e] rounded-2xl p-4 text-[#e8e8e8] relative'>
 			<span>Возможно вы случайно вышли ?</span>
 			<button
 				onClick={handleBack}
@@ -26,6 +27,13 @@ const ToastContent = ({
 			>
 				Обратно!
 			</button>
+
+			<div
+				className='absolute top-2 right-2 cursor-pointer transition-transform transform hover:scale-110'
+				onClick={closeToast}
+			>
+				<ClearIcon />
+			</div>
 		</div>
 	)
 }
