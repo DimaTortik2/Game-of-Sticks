@@ -348,14 +348,30 @@ export function move_3_4(
 	min: number,
 	max: number,
 	gNumbers: number[]
-): number[] | null {
+): number[] {
+	console.log(`%c[AI Brain] Запущена move_3_4`, 'color: #2ECC71', {
+		position,
+		min,
+		max,
+	})
+
 	if (!gNumbers || gNumbers.length === 0) {
 		console.error('AI knowledge (gNumbers) is missing for move_3_4')
-		return null // Возвращаем null если знаний нет
+		const fallbackPos = [...position]
+		if (fallbackPos.length > 0 && fallbackPos[0] >= min) {
+			fallbackPos[0] -= min
+			return fallbackPos.filter(g => g > 0)
+		}
+		return position
 	}
 	const nimSum = positionNimSum(gNumbers, position)
+	console.log(`%c[AI Brain] Ним-сумма: ${nimSum}`, 'color: #2ECC71')
 
 	if (nimSum !== 0) {
+		console.log(
+			`%c[AI Brain] Позиция выигрышная. Ищу идеальный ход...`,
+			'color: #2ECC71'
+		)
 		for (let i = 0; i < position.length; i++) {
 			const gTarget = nimSum ^ gNumbers[position[i]]
 			const bestMove = SticksRangeIndex(
@@ -372,6 +388,10 @@ export function move_3_4(
 				} else {
 					ansPos.splice(i, 1)
 				}
+				console.log(
+					`%c[AI Brain] РЕШЕНИЕ: ${JSON.stringify(ansPos)} (уменьшение группы)`,
+					'color: #3498DB; font-weight: bold;'
+				)
 				return ansPos
 			}
 		}
@@ -393,20 +413,42 @@ export function move_3_4(
 					bestMove[1],
 					position[i] - bestMove[0] - bestMove[1]
 				)
-				return ansPos.filter(count => count > 0)
+				const finalPos = ansPos.filter(count => count > 0)
+				console.log(
+					`%c[AI Brain] РЕШЕНИЕ: ${JSON.stringify(
+						finalPos
+					)} (разделение группы)`,
+					'color: #3498DB; font-weight: bold;'
+				)
+				return finalPos
 			}
 		}
 	}
 
-	// Если позиция проигрышная, делаем любой корректный ход
+	console.log(
+		`%c[AI Brain] Позиция проигрышная. Делаю любой корректный ход...`,
+		'color: #F39C12'
+	)
 	for (let i = 0; i < position.length; i++) {
 		if (position[i] >= min) {
 			const ansPos = [...position]
 			ansPos[i] -= min
-			return ansPos.filter(count => count > 0)
+			const finalPos = ansPos.filter(count => count > 0)
+			console.log(
+				`%c[AI Brain] РЕШЕНИЕ: ${JSON.stringify(
+					finalPos
+				)} (ход из проигрышной позиции)`,
+				'color: #3498DB; font-weight: bold;'
+			)
+			return finalPos
 		}
 	}
-	return null // Если ход невозможен, возвращаем null
+
+	console.error(
+		`%c[AI Brain] Не удалось найти ни одного хода!`,
+		'color: #E74C3C'
+	)
+	return position
 }
 
 export function mode_1_2_check(

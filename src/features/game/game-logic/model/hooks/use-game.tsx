@@ -24,62 +24,93 @@ import * as GameEngine from '../helpers/game-engine'
 import * as GameEngineMode5 from '../helpers/game-engine-mode5'
 import { normalizeGroupIdsAfterTurn } from '../helpers/normalize-group-ids'
 
-
 const applyAiMoveToSticks = (
 	currentSticks: IStick[],
 	positionBefore: number[],
-	positionAfter: number[]
+	positionAfter: number[],
+	modeNum: number
 ): IStick[] => {
 	const idsToTake = new Set<number>()
 	const availableSticks = currentSticks.filter(s => !s.isTaken)
 
-	const beforeMap = new Map<number, number>()
-	positionBefore.forEach(size =>
-		beforeMap.set(size, (beforeMap.get(size) || 0) + 1)
-	)
-
-	const afterMap = new Map<number, number>()
-	positionAfter.forEach(size =>
-		afterMap.set(size, (afterMap.get(size) || 0) + 1)
-	)
-
-	let removedGroupSize = -1
-	let addedGroups: number[] = []
-
-	for (const [size, count] of beforeMap.entries()) {
-		if (count > (afterMap.get(size) || 0)) {
-			removedGroupSize = size
-			break
-		}
-	}
-
-	for (const [size, count] of afterMap.entries()) {
-		for (let i = 0; i < count - (beforeMap.get(size) || 0); i++) {
-			addedGroups.push(size)
-		}
-	}
-
-	if (removedGroupSize !== -1) {
-		const groupsBefore = sticksToPosition(currentSticks)
-		const targetGroupId = groupsBefore.findIndex(
-			size => size === removedGroupSize
+	// Для режимов 1 и 2, где можно брать любые палочки, используется простой метод "взять с конца"
+	if (modeNum === 1 || modeNum === 2) {
+		const totalSticksToKeep = positionAfter.reduce(
+			(sum, count) => sum + count,
+			0
 		)
-
-		if (targetGroupId !== -1) {
-			const sticksInTargetGroup = availableSticks.filter(
-				s => s.groupId === targetGroupId
-			)
-			let stickCursor = 0
-			for (const newGroupSize of addedGroups) {
-				stickCursor += newGroupSize
+		const idsToKeep = new Set<number>()
+		for (let i = 0; i < totalSticksToKeep; i++) {
+			if (i < availableSticks.length) {
+				idsToKeep.add(availableSticks[i].id)
 			}
-			const numToTake = removedGroupSize - stickCursor
+		}
+		return currentSticks.map(stick => {
+			if (stick.isTaken) return stick
+			if (!idsToKeep.has(stick.id)) {
+				return { ...stick, isTaken: true, isSelected: false }
+			}
+			return stick
+		})
+	}
 
-			// Начинаем брать палочки ПОСЛЕ тех, что остались в первой новой группе
-			let startIndex = addedGroups.length > 0 ? addedGroups[0] : 0
-			for (let i = 0; i < numToTake; i++) {
-				if (startIndex + i < sticksInTargetGroup.length) {
-					idsToTake.add(sticksInTargetGroup[startIndex + i].id)
+	// Для режимов 3, 4, 5 (где важна непрерывность) используем новый, надежный алгоритм.
+	let prefixLength = 0
+	while (
+		prefixLength < positionBefore.length &&
+		prefixLength < positionAfter.length &&
+		positionBefore[prefixLength] === positionAfter[prefixLength]
+	) {
+		prefixLength++
+	}
+
+	let suffixLength = 0
+	while (
+		suffixLength < positionBefore.length - prefixLength &&
+		suffixLength < positionAfter.length - prefixLength &&
+		positionBefore[positionBefore.length - 1 - suffixLength] ===
+			positionAfter[positionAfter.length - 1 - suffixLength]
+	) {
+		suffixLength++
+	}
+
+	const beforeMiddle = positionBefore.slice(
+		prefixLength,
+		positionBefore.length - suffixLength
+	)
+	const afterMiddle = positionAfter.slice(
+		prefixLength,
+		positionAfter.length - suffixLength
+	)
+
+	if (beforeMiddle.length === 1) {
+		const changedGroupId = prefixLength
+		const sticksInTargetGroup = availableSticks.filter(
+			s => s.groupId === changedGroupId
+		)
+		const numToTake = beforeMiddle[0] - afterMiddle.reduce((a, b) => a + b, 0)
+
+		if (numToTake > 0) {
+			if (afterMiddle.length <= 1) {
+				// Случай: группа уменьшилась или была удалена. Берем с конца ЭТОЙ группы.
+				for (let i = 0; i < numToTake; i++) {
+					if (sticksInTargetGroup.length > i) {
+						idsToTake.add(
+							sticksInTargetGroup[sticksInTargetGroup.length - 1 - i].id
+						)
+					}
+				}
+			} else {
+				// ФИНАЛЬНАЯ, НАДЕЖНАЯ ЛОГИКА РАЗДЕЛЕНИЯ
+				// Определяем, сколько палочек нужно оставить в первом новом куске.
+				const firstNewGroupSize = afterMiddle[0]
+
+				// Начинаем брать палочки СРАЗУ ПОСЛЕ этого куска.
+				for (let i = 0; i < numToTake; i++) {
+					const stickIndexToTake = firstNewGroupSize + i
+					if (stickIndexToTake < sticksInTargetGroup.length) {
+						idsToTake.add(sticksInTargetGroup[stickIndexToTake].id)
+					}
 				}
 			}
 		}
@@ -91,7 +122,6 @@ const applyAiMoveToSticks = (
 			: stick
 	)
 }
-
 const sticksToPosition = (sticks: IStick[]): number[] => {
 	if (!sticks || sticks.length === 0) return []
 	const availableSticks = sticks.filter(s => !s.isTaken)
@@ -123,6 +153,7 @@ export const useGame = () => {
 	const [cacheCalcProgress, setCacheCalcProgress] = useState(0)
 	const [cacheStatusMessage, setCacheStatusMessage] = useState('')
 	const isMounted = useRef(false)
+	const [isReadyForAiFirstMove, setReadyForAiFirstMove] = useState(false)
 
 	const { modeNum } = getGameModeDataFromCookies()
 	const isDev = Cookies.get('devMode') === 'true'
@@ -221,17 +252,10 @@ export const useGame = () => {
 			}
 
 			if (positionAfter === null) {
-				console.error('AI не смог сделать ход.')
-				if (positionBefore.length > 0) {
-					console.warn('Making a simple fallback move.')
-					const fallbackPosition = [...positionBefore]
-					fallbackPosition[0]--
-					positionAfter = fallbackPosition.filter(p => p > 0)
-				} else {
-					setGameParams({ ...currentParams, isEnemyStep: false })
-					setIsTurnInProgress(false)
-					return
-				}
+				console.error('AI не смог сделать ход (движок вернул null).')
+				setGameParams({ ...currentParams, isEnemyStep: false })
+				setIsTurnInProgress(false)
+				return
 			}
 
 			let newSticksState = applyAiMoveToSticks(
@@ -510,27 +534,16 @@ export const useGame = () => {
 			}
 
 			if (modeNum === 5 && !grundyValues && !cacheLoadingPromise) {
-				console.log('Starting background cache loading...')
 				cacheLoadingPromise = cacheService.loadFromServer()
 				cacheLoadingPromise
-					.then(cache => {
-						console.log('Background cache loaded successfully.')
-						setGrundyValues(cache)
-					})
+					.then(cache => setGrundyValues(cache))
 					.catch(err => {
-						console.error('Background cache loading failed:', err)
 						cacheLoadingPromise = null
 					})
 			}
 
 			if (isFirstComputerStep) {
-				const initialParams = {
-					...gameParams,
-					isEnemyStep: true,
-					isFirstComputerStep: false,
-				}
-				setGameParams(initialParams)
-				makeAiTurn(sticksArr, initialParams)
+				setReadyForAiFirstMove(true)
 			}
 		}
 		return () => {
@@ -540,6 +553,30 @@ export const useGame = () => {
 			}
 		}
 	}, [isFirstComputerStep, sticksArr?.length])
+
+	useEffect(() => {
+		if (isReadyForAiFirstMove && sticksArr) {
+			if ((modeNum === 3 || modeNum === 4) && aiKnowledge.length === 0) {
+				return
+			}
+
+			const initialParams = {
+				...gameParams,
+				isEnemyStep: true,
+				isFirstComputerStep: false,
+			}
+			setGameParams(initialParams)
+			makeAiTurn(sticksArr, initialParams)
+			setReadyForAiFirstMove(false)
+		}
+	}, [
+		isReadyForAiFirstMove,
+		aiKnowledge,
+		sticksArr,
+		gameParams,
+		setGameParams,
+		makeAiTurn,
+	])
 
 	const resolvePromiseWithCache = (cache: Map<string, number>) => {
 		if ((window as any).resolveCachePromise) {
