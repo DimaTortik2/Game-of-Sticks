@@ -54,64 +54,86 @@ const applyAiMoveToSticks = (
 		})
 	}
 
-	// Для режимов 3, 4, 5 (где важна непрерывность) используем новый, надежный алгоритм.
-	let prefixLength = 0
-	while (
-		prefixLength < positionBefore.length &&
-		prefixLength < positionAfter.length &&
-		positionBefore[prefixLength] === positionAfter[prefixLength]
-	) {
-		prefixLength++
-	}
-
-	let suffixLength = 0
-	while (
-		suffixLength < positionBefore.length - prefixLength &&
-		suffixLength < positionAfter.length - prefixLength &&
-		positionBefore[positionBefore.length - 1 - suffixLength] ===
-			positionAfter[positionAfter.length - 1 - suffixLength]
-	) {
-		suffixLength++
-	}
-
-	const beforeMiddle = positionBefore.slice(
-		prefixLength,
-		positionBefore.length - suffixLength
-	)
-	const afterMiddle = positionAfter.slice(
-		prefixLength,
-		positionAfter.length - suffixLength
+	// НОВАЯ, БОЛЕЕ НАДЕЖНАЯ ЛОГИКА ДЛЯ РЕЖИМОВ 3, 4, 5
+	// Используем карты частот для определения изменений, что решает проблему с дублирующимися группами
+	const beforeCounts = new Map<number, number>()
+	positionBefore.forEach(size =>
+		beforeCounts.set(size, (beforeCounts.get(size) || 0) + 1)
 	)
 
-	if (beforeMiddle.length === 1) {
-		const changedGroupId = prefixLength
-		const sticksInTargetGroup = availableSticks.filter(
-			s => s.groupId === changedGroupId
+	const afterCounts = new Map<number, number>()
+	positionAfter.forEach(size =>
+		afterCounts.set(size, (afterCounts.get(size) || 0) + 1)
+	)
+
+	// 1. Находим, какая группа была изменена (ее размер)
+	let sourceGroupSize: number | undefined
+	for (const [size, count] of beforeCounts.entries()) {
+		if (count > (afterCounts.get(size) || 0)) {
+			sourceGroupSize = size
+			break
+		}
+	}
+
+	if (sourceGroupSize === undefined) {
+		console.error('AI apply move: не удалось найти исходную группу для хода.', {
+			positionBefore,
+			positionAfter,
+		})
+		return currentSticks // Возвращаем без изменений в случае ошибки
+	}
+
+	// 2. Находим, какие новые группы появились в результате хода
+	const newGroupSizes: number[] = []
+	for (const [size, count] of afterCounts.entries()) {
+		const diff = count - (beforeCounts.get(size) || 0)
+		for (let i = 0; i < diff; i++) {
+			newGroupSizes.push(size)
+		}
+	}
+
+	// 3. Находим физическую группу палочек, которая соответствует измененной группе
+	const availableSticksByGroup = new Map<number, IStick[]>()
+	availableSticks.forEach(stick => {
+		if (!availableSticksByGroup.has(stick.groupId)) {
+			availableSticksByGroup.set(stick.groupId, [])
+		}
+		availableSticksByGroup.get(stick.groupId)!.push(stick)
+	})
+
+	let targetGroupId: number | undefined
+	for (const [groupId, sticksInGroup] of availableSticksByGroup.entries()) {
+		if (sticksInGroup.length === sourceGroupSize) {
+			targetGroupId = groupId
+			break // Нашли первую подходящую группу
+		}
+	}
+
+	if (targetGroupId === undefined) {
+		console.error(
+			`AI apply move: не удалось найти физическую группу размером ${sourceGroupSize}.`
 		)
-		const numToTake = beforeMiddle[0] - afterMiddle.reduce((a, b) => a + b, 0)
+		return currentSticks
+	}
 
-		if (numToTake > 0) {
-			if (afterMiddle.length <= 1) {
-				// Случай: группа уменьшилась или была удалена. Берем с конца ЭТОЙ группы.
-				for (let i = 0; i < numToTake; i++) {
-					if (sticksInTargetGroup.length > i) {
-						idsToTake.add(
-							sticksInTargetGroup[sticksInTargetGroup.length - 1 - i].id
-						)
-					}
-				}
-			} else {
-				// ФИНАЛЬНАЯ, НАДЕЖНАЯ ЛОГИКА РАЗДЕЛЕНИЯ
-				// Определяем, сколько палочек нужно оставить в первом новом куске.
-				const firstNewGroupSize = afterMiddle[0]
+	const sticksInTargetGroup = availableSticksByGroup.get(targetGroupId)!
+	const sticksTakenCount =
+		sourceGroupSize - newGroupSizes.reduce((sum, size) => sum + size, 0)
 
-				// Начинаем брать палочки СРАЗУ ПОСЛЕ этого куска.
-				for (let i = 0; i < numToTake; i++) {
-					const stickIndexToTake = firstNewGroupSize + i
-					if (stickIndexToTake < sticksInTargetGroup.length) {
-						idsToTake.add(sticksInTargetGroup[stickIndexToTake].id)
-					}
-				}
+	// 4. Определяем, какие именно палочки взять
+	if (newGroupSizes.length <= 1) {
+		// Случай: группа уменьшилась или была удалена. Берем с конца этой группы.
+		for (let i = 0; i < sticksTakenCount; i++) {
+			idsToTake.add(sticksInTargetGroup[sticksInTargetGroup.length - 1 - i].id)
+		}
+	} else {
+		// Случай: группа была разделена.
+		// Берем палочки из "пробела" между новыми образовавшимися группами.
+		const firstNewGroupSize = newGroupSizes[0]
+		for (let i = 0; i < sticksTakenCount; i++) {
+			const stickIndexToTake = firstNewGroupSize + i
+			if (stickIndexToTake < sticksInTargetGroup.length) {
+				idsToTake.add(sticksInTargetGroup[stickIndexToTake].id)
 			}
 		}
 	}
@@ -122,6 +144,7 @@ const applyAiMoveToSticks = (
 			: stick
 	)
 }
+
 const sticksToPosition = (sticks: IStick[]): number[] => {
 	if (!sticks || sticks.length === 0) return []
 	const availableSticks = sticks.filter(s => !s.isTaken)

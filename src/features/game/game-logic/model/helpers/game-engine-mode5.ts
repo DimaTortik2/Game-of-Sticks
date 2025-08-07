@@ -1,3 +1,4 @@
+
 // Тип для нашего кэша
 type GrundyCache = Map<string, number>
 
@@ -228,17 +229,19 @@ export function move_5(
 		`%c[AI Brain M5] Позиция проигрышная (g=0) или идеальный ход не найден. Делаю любой корректный ход...`,
 		'color: #F39C12'
 	)
+
+	// ИЗМЕНЕННАЯ ЛОГИКА: Вместо поиска самой большой группы, делаем самый простой и надежный ход -
+	// берем одну палочку из первой доступной группы.
 	if (piles.length > 0) {
 		const newPiles = [...piles]
-		const largestGroupIndex = newPiles.reduce(
-			(maxIndex, currentVal, currentIndex, arr) =>
-				currentVal > arr[maxIndex] ? currentIndex : maxIndex,
-			0
-		)
-		newPiles[largestGroupIndex]--
+		// Уменьшаем первую группу на 1. Так как массив отсортирован, это предсказуемо.
+		newPiles[0]--
+		// Убираем группу, если в ней не осталось палочек.
 		const finalPos = newPiles.filter(p => p > 0)
 		console.log(
-			`%c[AI Brain M5] РЕШЕНИЕ (План Б): ${JSON.stringify(finalPos)}`,
+			`%c[AI Brain M5] РЕШЕНИЕ (План Б, упрощенный): ${JSON.stringify(
+				finalPos
+			)}`,
 			'color: #3498DB; font-weight: bold;'
 		)
 		return finalPos
