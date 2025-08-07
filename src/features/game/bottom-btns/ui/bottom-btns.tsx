@@ -5,8 +5,14 @@ import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
 import Tooltip from '@mui/material/Tooltip'
 import clsx from 'clsx'
 import { MusicButton } from '../../../music'
+import { useAtom } from 'jotai'
+import { IsDevBtnVisibleCookieAtom } from '../../../../app/stores/menu/menu-store'
+import ClearIcon from '@mui/icons-material/Clear'
+import { useDevTimer } from '../model/hooks/use-dev-timer'
 
 export function BottomBtns() {
+	const [isDevVisible, setIsDevVisible] = useAtom(IsDevBtnVisibleCookieAtom)
+	const { handleArrowClick } = useDevTimer(() => setIsDevVisible(true))
 	const [isArrowClicked, setIsArrowClicked] = useState(false)
 
 	const [isDevChecked, setIsDevChecked] = useState(
@@ -42,6 +48,7 @@ export function BottomBtns() {
 				<div
 					className='rounded-full bg-[#3e3e3e] h-10 w-10 text-[#e8e8e8] flex items-center justify-center cursor-pointer transform hover:scale-105 transition-transform p-7'
 					onClick={() => {
+						handleArrowClick()
 						setIsArrowClicked(prev => !prev)
 
 						const scrollContainer = document.getElementById(
@@ -69,9 +76,16 @@ export function BottomBtns() {
 			</Tooltip>
 			<MusicButton className='mx-2 w-4 h-4 p-7 z-[20]' isSmall={true} />
 
-			<div className=' flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8]'>
+			<div
+				className={clsx(
+					' flex gap-5 justify-start items-center bg-[#3e3e3e] p-5 rounded-2xl text-[#e8e8e8] transition-opacity ',
+					isDevVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
+				)}
+			>
 				<Tooltip
-					title={'Режим с подсветкой палочек (для избранных)'}
+					title={
+						isDevVisible ? 'Режим с подсветкой палочек (для избранных)' : ''
+					}
 					componentsProps={{
 						tooltip: {
 							sx: {
@@ -84,7 +98,7 @@ export function BottomBtns() {
 						},
 					}}
 				>
-					<div className='flex gap-5 h-full items-center'>
+					<div className='flex gap-5 h-full items-center transition-opacity'>
 						<p>Режим разработчика</p>
 						<Checkbox
 							checked={isDevChecked}
@@ -101,6 +115,15 @@ export function BottomBtns() {
 						/>
 					</div>
 				</Tooltip>
+				<div
+					className='cursor-pointer transition-transform transform hover:scale-110'
+					onClick={() => {
+						setIsDevVisible(false)
+						Cookies.set('devMode', 'false')
+					}}
+				>
+					<ClearIcon />
+				</div>
 			</div>
 		</div>
 	)
