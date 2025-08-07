@@ -23,6 +23,7 @@ import { cacheService } from '../../../../cahce/api/services/cache.service'
 import * as GameEngine from '../helpers/game-engine'
 import * as GameEngineMode5 from '../helpers/game-engine-mode5'
 import { normalizeGroupIdsAfterTurn } from '../helpers/normalize-group-ids'
+import { useListenKey } from '../../../../../shared/model/hooks/listen-key'
 
 const applyAiMoveToSticks = (
 	currentSticks: IStick[],
@@ -664,6 +665,8 @@ export const useGame = () => {
 			)
 		}
 	}, [gameParams.sticksCount, setGrundyValues])
+
+	useListenKey([{ fn: handlePlayerTurn, key: 'Enter' }])
 
 	return {
 		gameParams,
