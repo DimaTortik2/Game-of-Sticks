@@ -6,6 +6,8 @@ import { MainPageBackground } from '../../../shared/ui/bg/main-page-background'
 import { Btn } from '../../../shared/ui/btns-or-links/btn'
 import { setGameModeDataToCookies } from '../../../app/stores/game/cookies/game-mode/set-game-mode-data-to-cookies'
 import { BottomBtns } from '../../../features/game/bottom-btns'
+import { INFO_BTNS } from '../model/consts/info-btns'
+import Tooltip from '@mui/material/Tooltip'
 
 export const MainMenuPage = () => {
 	return (
@@ -38,15 +40,29 @@ export const MainMenuPage = () => {
 
 					<div className=' flex h-screen items-start justify-end'>
 						<div className='inline-flex flex-col gap-8 '>
-							<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
-								Обучение как играть
-							</Btn>
-							<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
-								Советы и подсказки
-							</Btn>
-							<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
-								Готовые стратегии и их доказательства
-							</Btn>
+							{INFO_BTNS.map(btn => (
+								<Tooltip
+									title={'Будет в скором времени...'}
+									placement='left'
+									componentsProps={{
+										tooltip: {
+											sx: {
+												fontSize: '1rem',
+												backgroundColor: '#e8e8e8',
+												color: '#212121',
+												borderRadius: '10px',
+												padding: 1.5,
+											},
+										},
+									}}
+								>
+									<a href={btn.href}>
+										<Btn className='bg-[#212121] text-[#e8e8e8] w-full max-w-md'>
+											{btn.title}
+										</Btn>
+									</a>
+								</Tooltip>
+							))}
 						</div>
 					</div>
 				</main>
